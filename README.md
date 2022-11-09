@@ -19,3 +19,20 @@ To run the tests:
 ```bash
 brownie test
 ```
+
+## Coverage
+
+To get the coverage:
+
+```bash
+brownie test -n auto --coverage
+```
+
+While checking the coverage please note the following things:
+
+-   The following contracts are out of the scope so their coverage shouldn't be considered
+    -   TraderNFT
+    -   USDC
+    -   BFR
+    -   ReferralStorage
+-   All the custom functions written by Buffer Finance have a coverage above 90%. Howerver, since our contracts use Openzepplin and our testcases havent covered its functions, the resulting coverage across the project is low.
