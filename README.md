@@ -35,4 +35,4 @@ While checking the coverage please note the following things:
     -   USDC
     -   BFR
     -   ReferralStorage
--   All the custom functions written by Buffer Finance have a coverage above 90%. Howerver, since our contracts use Openzepplin and our testcases havent covered its functions, the resulting coverage across the project is low.
+-   All the custom functions written by Buffer Finance have a coverage above 90%. Howerver, since our contracts use Openzepplin and our testcases haven't covered its functions, the resulting coverage across the project is low.
