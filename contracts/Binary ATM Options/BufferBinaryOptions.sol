@@ -8,7 +8,6 @@ import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
-import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
 import "./OptionConfigBinaryV2.sol";
 import "../Interfaces/InterfacesBinary.sol";
 
@@ -23,8 +22,7 @@ contract BufferBinaryOptions is
     Ownable,
     ReentrancyGuard,
     ERC721,
-    AccessControl,
-    ERC721URIStorage
+    AccessControl
 {
     uint256 public nextTokenId = 0;
     uint256 public totalLockedAmount;
@@ -376,24 +374,6 @@ contract BufferBinaryOptions is
         return nextTokenId++;
     }
 
-    function _baseURI() internal pure override returns (string memory) {
-        return "https://gateway.pinata.cloud/ipfs/";
-    }
-
-    function _burn(uint256 optionId_)
-        internal
-        override(ERC721, ERC721URIStorage)
-    {
-        super._burn(optionId_);
-    }
-
-    function _setTokenURI(uint256 tokenId, string memory _tokenURI)
-        internal
-        override
-    {
-        return super._setTokenURI(tokenId, _tokenURI);
-    }
-
     function min(uint256 a, uint256 b) internal pure returns (uint256) {
         return a < b ? a : b;
     }
@@ -405,15 +385,6 @@ contract BufferBinaryOptions is
         returns (bool)
     {
         return super.supportsInterface(interfaceId);
-    }
-
-    function tokenURI(uint256 tokenId)
-        public
-        view
-        override(ERC721, ERC721URIStorage)
-        returns (string memory)
-    {
-        return super.tokenURI(tokenId);
     }
 
     /************************************************
