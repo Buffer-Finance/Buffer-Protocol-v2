@@ -140,8 +140,8 @@ class BinaryOptionTesting(object):
         assert self.options_config.overallPoolUtilizationLimit() == 52e2
 
         # maxPeriod
-        with brownie.reverts("MaxPeriod needs to be greater than 5 minutes"):
-            self.options_config.setMaxPeriod(100)
+        with brownie.reverts("MaxPeriod needs to be greater than 1 minutes"):
+            self.options_config.setMaxPeriod(50)
         with brownie.reverts():  # Wrong role
             self.options_config.setMaxPeriod(86400, {"from": self.user_1})
         self.options_config.setMaxPeriod(86400)

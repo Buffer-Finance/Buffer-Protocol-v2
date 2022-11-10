@@ -72,7 +72,10 @@ contract BufferRouter is AccessControl, IBufferRouter {
         uint256 traderNFTId
     ) external returns (uint256 queueId) {
         // Checks if the target contract has been registered
-        _validateContract(targetContract);
+        require(
+            contractRegistry[targetContract],
+            "Router: Unauthorized contract"
+        );
         IBufferBinaryOptions optionsContract = IBufferBinaryOptions(
             targetContract
         );
@@ -161,7 +164,7 @@ contract BufferRouter is AccessControl, IBufferRouter {
                 continue;
             }
 
-            // If the opening time is much greater than the queue time than cancel the trade
+            // If the opening time is much greater than the queue time then cancel the trade
             if (block.timestamp - queuedTrade.queuedTime <= MAX_WAIT_TIME) {
                 _openQueuedTrade(currentParams.queueId, currentParams.price);
             } else {
@@ -248,13 +251,6 @@ contract BufferRouter is AccessControl, IBufferRouter {
     /************************************************
      *  INTERNAL FUNCTIONS
      ***********************************************/
-    function _validateContract(address targetContract) private view {
-        require(
-            contractRegistry[targetContract],
-            "Router: Unauthorized contract"
-        );
-    }
-
     function _validateKeeper() private view {
         require(
             !isInPrivateKeeperMode || isKeeper[msg.sender],

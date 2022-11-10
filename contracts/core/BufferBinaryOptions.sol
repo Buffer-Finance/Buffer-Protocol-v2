@@ -277,16 +277,16 @@ contract BufferBinaryOptions is
     ) external view override {
         require(!isPaused, "O33");
         require(slippage <= 5e2, "O34"); // 5% is the max slippage a user can use
-        require((period) >= 5 minutes, "O21");
-        require((period) <= config.maxPeriod(), "O24");
-        require(totalFee >= config.minFee() * 10**decimals(), "O35");
+        require(period >= config.minPeriod(), "O21");
+        require(period <= config.maxPeriod(), "O25");
+        require(totalFee >= config.minFee(), "O35");
     }
 
     /**
      * @notice Calculates max option amount based on the pool's capacity
      */
     function getMaxUtilization() public view returns (uint256 maxAmount) {
-        // --------- Calculate the max option size due to asset wise pool utilization limit
+        // Calculate the max option size due to asset wise pool utilization limit
         uint256 totalPoolBalance = pool.totalTokenXBalance();
         uint256 availableBalance = totalPoolBalance - totalLockedAmount;
         uint256 utilizationLimit = config.assetUtilizationLimit();
@@ -296,7 +296,7 @@ contract BufferBinaryOptions is
             utilizationLimit
         );
 
-        // --------- Calculate the max option size due to overall pool utilization limit
+        // Calculate the max option size due to overall pool utilization limit
         utilizationLimit = config.overallPoolUtilizationLimit();
         availableBalance = pool.availableBalance();
         uint256 maxUtilizationAmount = _getMaxUtilization(
@@ -331,12 +331,12 @@ contract BufferBinaryOptions is
 
         uint256 maxAmount = getMaxUtilization();
 
-        // --------- Calculate the max fee due to the max txn limit
+        // Calculate the max fee due to the max txn limit
         uint256 maxPerTxnFee = ((pool.availableBalance() *
             config.optionFeePerTxnLimitPercent()) / 100e2);
         uint256 newFee = min(optionParams.totalFee, maxPerTxnFee);
 
-        // --------- Calculate the amount here from the new fees
+        // Calculate the amount here from the new fees
         uint256 settlementFeePercentage;
         (
             settlementFeePercentage,
@@ -350,7 +350,7 @@ contract BufferBinaryOptions is
         (uint256 unitFee, , ) = _fees(10**decimals(), settlementFeePercentage);
         amount = (newFee * 10**decimals()) / unitFee;
 
-        // --------- Recalculate the amount and the fees if values are greater than the max and partial fill is allowed
+        // Recalculate the amount and the fees if values are greater than the max and partial fill is allowed
         if (amount > maxAmount || newFee < optionParams.totalFee) {
             require(optionParams.allowPartialFill, "O29");
             amount = min(amount, maxAmount);

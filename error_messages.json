@@ -19,7 +19,7 @@
   "O18": "Expiration price is too high",
   "O19": "Expiration period is not over yet",
   "O20": "RoundID not found",
-  "O21": "Period should be greater than 5 mins",
+  "O21": "Period too small",
   "O22": "Strike should be equal to 0 for ATM options",
   "O23": "Amount greater than option amount size per block",
   "O24": "Difference between bet amount and total fee is too large",

@@ -244,12 +244,14 @@ interface IOptionsConfig {
 
     event UpdateMarketTime();
     event UpdateMaxPeriod(uint32 value);
+    event UpdateMinPeriod(uint32 value);
+
     event UpdateOptionFeePerTxnLimitPercent(uint16 value);
     event UpdateOverallPoolUtilizationLimit(uint16 value);
     event UpdateSettlementFeeDisbursalContract(address value);
     event UpdatetraderNFTContract(address value);
     event UpdateAssetUtilizationLimit(uint16 value);
-    event UpdateMinFee(uint16 value);
+    event UpdateMinFee(uint256 value);
 
     function traderNFTContract() external view returns (address);
 
@@ -271,7 +273,9 @@ interface IOptionsConfig {
 
     function maxPeriod() external view returns (uint32);
 
-    function minFee() external view returns (uint16);
+    function minPeriod() external view returns (uint32);
+
+    function minFee() external view returns (uint256);
 
     function optionFeePerTxnLimitPercent() external view returns (uint16);
 }

@@ -18,8 +18,10 @@ contract OptionsConfig is Ownable, IOptionsConfig {
     uint16 public override assetUtilizationLimit = 10e2;
     uint16 public override overallPoolUtilizationLimit = 64e2;
     uint32 public override maxPeriod = 24 hours;
+    uint32 public override minPeriod = 5 minutes;
+
     uint16 public override optionFeePerTxnLimitPercent = 5e2;
-    uint16 public override minFee = 1;
+    uint256 public override minFee = 1e6;
 
     mapping(uint8 => Window) public override marketTimes;
 
@@ -32,7 +34,7 @@ contract OptionsConfig is Ownable, IOptionsConfig {
         emit UpdatetraderNFTContract(value);
     }
 
-    function setMinFee(uint16 value) external onlyOwner {
+    function setMinFee(uint256 value) external onlyOwner {
         minFee = value;
         emit UpdateMinFee(value);
     }
@@ -64,11 +66,20 @@ contract OptionsConfig is Ownable, IOptionsConfig {
 
     function setMaxPeriod(uint32 value) external onlyOwner {
         require(
-            value >= 5 minutes,
-            "MaxPeriod needs to be greater than 5 minutes"
+            value >= 1 minutes,
+            "MaxPeriod needs to be greater than 1 minutes"
         );
         maxPeriod = value;
         emit UpdateMaxPeriod(value);
+    }
+
+    function setMinPeriod(uint32 value) external onlyOwner {
+        require(
+            value >= 1 minutes,
+            "MinPeriod needs to be greater than 1 minutes"
+        );
+        minPeriod = value;
+        emit UpdateMinPeriod(value);
     }
 
     function setMarketTime(Window[] memory windows) external onlyOwner {
