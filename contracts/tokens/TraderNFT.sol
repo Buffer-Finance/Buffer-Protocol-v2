@@ -49,11 +49,6 @@ contract TraderNFT is ERC721, ERC721URIStorage, Ownable, ReentrancyGuard {
         tokenIdCounter.increment();
         tokenTierMappings[tokenId] = tier;
 
-        // userTier[to] = max(userTier[to], tier) // TODO: Remove this, fix bug
-        if (userTier[to] < tier) {
-            userTier[to] = tier;
-        }
-
         _safeMint(to, tokenId);
         _setTokenURI(tokenId, uri);
         tokenMintMappings[claimtokenId] = true;

@@ -182,6 +182,12 @@ contract BufferBinaryOptions is
             emit Expire(optionID, option.premium, priceAtExpiration);
         }
         totalLockedAmount -= option.lockedAmount;
+
+        // // if not expired -- early close
+        // // Run black scholes and get the Imp. probability at this price and strike and then make the payout
+        // payout = (2 * lockedAmount * impProb);
+        // // _exercise(optionID, priceAtExpiration);
+        // // emit PartialExercise()
     }
 
     /************************************************
