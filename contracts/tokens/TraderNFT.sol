@@ -50,7 +50,7 @@ contract TraderNFT is
         _safeMint(to, tokenId);
         _setTokenURI(tokenId, uri);
         tokenMintMappings[claimtokenId] = true;
-        emit Mint(tokenId, to, tier);
+        emit Mint(to, tokenId, tier);
     }
 
     function claim()
@@ -71,7 +71,7 @@ contract TraderNFT is
         claimTokenId = claimTokenIdCounter.current();
         claimTokenIdCounter.increment();
         payable(admin).transfer(nftBasePrice);
-        emit Claim(claimTokenId, msg.sender);
+        emit Claim(msg.sender, claimTokenId);
     }
 
     function setNftBasePrice(uint256 value) external onlyOwner {

@@ -110,7 +110,7 @@ contract BufferRouter is AccessControl, IBufferRouter {
 
         userQueuedIds[msg.sender].push(queueId);
 
-        emit InitiateTrade(queueId, msg.sender, block.timestamp);
+        emit InitiateTrade(msg.sender, queueId, block.timestamp);
     }
 
     /**
@@ -121,7 +121,7 @@ contract BufferRouter is AccessControl, IBufferRouter {
         require(msg.sender == queuedTrade.user, "Router: Forbidden");
         require(queuedTrade.isQueued, "Router: Trade has already been opened");
         _cancelQueuedTrade(queueId);
-        emit CancelTrade(queueId, queuedTrade.user, "User Cancelled");
+        emit CancelTrade(queuedTrade.user, queueId, "User Cancelled");
     }
 
     /************************************************
@@ -167,8 +167,8 @@ contract BufferRouter is AccessControl, IBufferRouter {
             } else {
                 _cancelQueuedTrade(currentParams.queueId);
                 emit CancelTrade(
-                    currentParams.queueId,
                     queuedTrade.user,
+                    currentParams.queueId,
                     "Wait time too high"
                 );
             }
@@ -291,8 +291,8 @@ contract BufferRouter is AccessControl, IBufferRouter {
         if (!isSlippageWithinRange) {
             _cancelQueuedTrade(queueId);
             emit CancelTrade(
-                queueId,
                 queuedTrade.user,
+                queueId,
                 "Slippage limit exceeds"
             );
 
@@ -327,7 +327,7 @@ contract BufferRouter is AccessControl, IBufferRouter {
             );
         } catch Error(string memory reason) {
             _cancelQueuedTrade(queueId);
-            emit CancelTrade(queueId, queuedTrade.user, reason);
+            emit CancelTrade(queuedTrade.user, queueId, reason);
             return;
         }
 
@@ -351,7 +351,7 @@ contract BufferRouter is AccessControl, IBufferRouter {
 
         queuedTrade.isQueued = false;
 
-        emit OpenTrade(queueId, queuedTrade.user);
+        emit OpenTrade(queuedTrade.user, queueId);
     }
 
     function _cancelQueuedTrade(uint256 queueId) internal {

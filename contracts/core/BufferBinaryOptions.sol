@@ -139,8 +139,8 @@ contract BufferBinaryOptions is
         tokenX.transfer(config.settlementFeeDisbursalContract(), settlementFee);
         pool.lock(optionID, option.lockedAmount, option.premium);
         emit Create(
-            optionID,
             optionParams.user,
+            optionID,
             settlementFee,
             optionParams.totalFee
         );
@@ -442,14 +442,14 @@ contract BufferBinaryOptions is
         returns (uint256 profit)
     {
         Option storage option = options[optionID];
-
+        address user = ownerOf(optionID);
         profit = option.lockedAmount;
-        pool.send(optionID, ownerOf(optionID), profit);
+        pool.send(optionID, user, profit);
 
         // Burn the option
         _burn(optionID);
         option.state = State.Exercised;
-        emit Exercise(optionID, profit, priceAtExpiration);
+        emit Exercise(user, optionID, profit, priceAtExpiration);
     }
 
     /**

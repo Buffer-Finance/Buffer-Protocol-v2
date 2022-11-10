@@ -61,22 +61,27 @@ interface IBufferRouter {
         uint256 priceAtExpiry;
         bytes signature;
     }
-    event OpenTrade(uint256 queueId, address user);
-    event CancelTrade(uint256 queueId, address user, string reason);
+    event OpenTrade(address indexed account, uint256 queueId);
+    event CancelTrade(address indexed account, uint256 queueId, string reason);
     event FailUnlock(uint256 optionId, string reason);
     event FailResolve(uint256 queueId, string reason);
-    event InitiateTrade(uint256 queueId, address user, uint256 queuedTime);
+    event InitiateTrade(
+        address indexed account,
+        uint256 queueId,
+        uint256 queuedTime
+    );
 }
 
 interface IBufferBinaryOptions {
     event Create(
-        uint256 indexed id,
         address indexed account,
+        uint256 indexed id,
         uint256 settlementFee,
         uint256 totalFee
     );
 
     event Exercise(
+        address indexed account,
         uint256 indexed id,
         uint256 profit,
         uint256 priceAtExpiration
@@ -279,8 +284,8 @@ interface ITraderNFT {
     event UpdateNftBasePrice(uint256 nftBasePrice);
     event UpdateMaxNFTMintLimits(uint256 maxNFTMintLimit);
     event UpdateBaseURI(string baseURI);
-    event Claim(uint256 claimTokenId, address account);
-    event Mint(uint256 tokenId, address account, uint8 tier);
+    event Claim(address indexed account, uint256 claimTokenId);
+    event Mint(address indexed account, uint256 tokenId, uint8 tier);
 }
 
 interface IReferralStorage {
@@ -330,8 +335,12 @@ interface IReferralStorage {
         uint256 discountShare; // 5000 for 50%/50%, 7000 for 30% rebates/70% discount
     }
 
-    event UpdateTraderReferralCode(address account, string code);
+    event UpdateTraderReferralCode(address indexed account, string code);
     event UpdateReferrerTier(address referrer, uint8 tierId);
-    event RegisterCode(address account, string code);
-    event SetCodeOwner(address account, address newAccount, string code);
+    event RegisterCode(address indexed account, string code);
+    event SetCodeOwner(
+        address indexed account,
+        address newAccount,
+        string code
+    );
 }
