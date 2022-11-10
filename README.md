@@ -1,3 +1,11 @@
+## Documentation
+
+Refer to this [link](https://docs.google.com/document/d/1mgnjQ1n5nbKeSUjqY5av2akqBq_hmQrVAZeD4Gh5Cao/edit)
+
+## Solidity Metrics
+
+![Metrics](https://github.com/bufferfinance/Buffer-Protocol-v2/blob/master/metrics.png?raw=true)
+
 ## Installation
 
 [Install Brownie](https://eth-brownie.readthedocs.io/en/stable/install.html), if you haven't already.
@@ -30,11 +38,11 @@ brownie test -n auto --coverage
 
 While checking the coverage please note the following things:
 
-- The following contracts are out of the scope so their coverage shouldn't be considered
-  - TraderNFT
-  - USDC
-  - BFR
-- All the custom functions written by Buffer Finance have coverage above 90%. However, since our contracts use Openzepplin and our test cases haven't covered its functions _(marked in >>)_, the resulting coverage across the project is low.
+-   The following contracts are out of the scope so their coverage shouldn't be considered
+    -   TraderNFT
+    -   USDC
+    -   BFR
+-   All the custom functions written by Buffer Finance have coverage above 90%. However, since our contracts use Openzepplin and our test cases haven't covered its functions _(marked in >>)_, the resulting coverage across the project is low.
 
 ```bash
   contract: BufferBinaryOptions - 64.7%
