@@ -104,7 +104,7 @@ def test_nft_creation(contracts, accounts, chain):
     )
     assert (
         trader_nft_contract.tokenTierMappings(tokenId) == tier
-        and trader_nft_contract.userToTier(account) == tier
+        and trader_nft_contract.userTier(account) == tier
     ), "Tiers should tally"
 
     assert trader_nft_contract.tokenIdCounter() == 1, "setNftBasePrice verified"
@@ -136,7 +136,7 @@ def test_nft_creation(contracts, accounts, chain):
     )
     assert (
         trader_nft_contract.tokenTierMappings(tokenId + 1) == 6
-        and trader_nft_contract.userToTier(account) == 6
+        and trader_nft_contract.userTier(account) == 6
     ), "Tiers should tally"
     chain.revert()
 
@@ -150,6 +150,6 @@ def test_nft_creation(contracts, accounts, chain):
     )
     assert (
         trader_nft_contract.tokenTierMappings(tokenId + 1) == 4
-        and trader_nft_contract.userToTier(account) == 5
+        and trader_nft_contract.userTier(account) == 5
     ), "Tiers should tally"
     chain.revert()

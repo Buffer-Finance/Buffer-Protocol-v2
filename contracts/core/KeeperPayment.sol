@@ -13,8 +13,8 @@ import "../interfaces/Interfaces.sol";
  */
 contract KeeperPayment is Ownable, IKeeperPayment, AccessControl {
     ERC20 public rewardToken;
-    uint256 public openRewardPercent = 50e2;
-    uint256 public reward = 1;
+    uint32 public openRewardPercent = 50e2;
+    uint32 public reward = 1;
     bytes32 public constant ROUTER_ROLE = keccak256("ROUTER_ROLE");
 
     constructor(ERC20 _rewardToken) {
@@ -25,7 +25,7 @@ contract KeeperPayment is Ownable, IKeeperPayment, AccessControl {
     /**
      * @notice Used for adjusting the reward percent for opening the trade
      */
-    function setOpenRewardPercent(uint256 value) external onlyOwner {
+    function setOpenRewardPercent(uint32 value) external onlyOwner {
         openRewardPercent = value;
         emit UpdateOpenRewardPercent(value);
     }
@@ -33,7 +33,7 @@ contract KeeperPayment is Ownable, IKeeperPayment, AccessControl {
     /**
      * @notice Used for adjusting the reward
      */
-    function setReward(uint256 value) external onlyOwner {
+    function setReward(uint32 value) external onlyOwner {
         reward = value;
         emit UpdateReward(value);
     }

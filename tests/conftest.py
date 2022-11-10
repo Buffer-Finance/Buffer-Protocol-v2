@@ -30,7 +30,7 @@ def contracts(
     BufferBinaryPool,
     BufferBinaryOptions,
     OptionsConfig,
-    OptionRouter,
+    BufferRouter,
     SettlementFeeDisbursal,
     TraderNFT,
     KeeperPayment,
@@ -42,13 +42,10 @@ def contracts(
 
     tokenX = USDC.deploy({"from": accounts[0]})
 
-    binary_pool_atm = BufferBinaryPool.deploy(
-        tokenX.address, {"from": accounts[0]}
-    )
+    binary_pool_atm = BufferBinaryPool.deploy(tokenX.address, {"from": accounts[0]})
     OPTION_ISSUER_ROLE = binary_pool_atm.OPTION_ISSUER_ROLE()
-    keeper_contract = KeeperPayment.deploy(
-        ibfr_contract, {"from": accounts[0]})
-    router = OptionRouter.deploy(
+    keeper_contract = KeeperPayment.deploy(ibfr_contract, {"from": accounts[0]})
+    router = BufferRouter.deploy(
         publisher, keeper_contract.address, {"from": accounts[0]}
     )
     trader_nft = TraderNFT.deploy(accounts[9], {"from": accounts[0]})
@@ -124,7 +121,9 @@ def contracts(
         {"from": accounts[0]},
     )
     binary_options_config_atm.settraderNFTContract(trader_nft.address)
-    binary_european_options_atm.initialize(15e2, 15e2, {"from": accounts[0]})
+    binary_european_options_atm.configure(
+        15e2, 15e2, [0, 1, 2, 3], {"from": accounts[0]}
+    )
 
     print("############### Binary ATM Options 2 #################")
     binary_options_config_atm_2 = OptionsConfig.deploy(
@@ -183,7 +182,9 @@ def contracts(
         {"from": accounts[0]},
     )
     binary_options_config_atm_2.settraderNFTContract(trader_nft.address)
-    binary_european_options_atm_2.initialize(15e2, 15e2, {"from": accounts[0]})
+    binary_european_options_atm_2.configure(
+        15e2, 15e2, [0, 1, 2, 3], {"from": accounts[0]}
+    )
 
     print("############### Binary ATM Options 3 #################")
     binary_options_config_atm_3 = OptionsConfig.deploy(
@@ -243,13 +244,13 @@ def contracts(
         {"from": accounts[0]},
     )
     binary_options_config_atm_3.settraderNFTContract(trader_nft.address)
-    binary_european_options_atm_3.initialize(15e2, 15e2, {"from": accounts[0]})
+    binary_european_options_atm_3.configure(
+        15e2, 15e2, [0, 1, 2, 3], {"from": accounts[0]}
+    )
 
     print("############### Deploying BFR pool contracts #################")
 
-    bfr_pool_atm = BufferBinaryPool.deploy(
-        ibfr_contract.address, {"from": accounts[0]}
-    )
+    bfr_pool_atm = BufferBinaryPool.deploy(ibfr_contract.address, {"from": accounts[0]})
 
     bfr_binary_options_config_atm = OptionsConfig.deploy(
         bfr_pool_atm.address,
@@ -310,9 +311,10 @@ def contracts(
         {"from": accounts[0]},
     )
     bfr_binary_options_config_atm.settraderNFTContract(trader_nft.address)
-    bfr_binary_european_options_atm.initialize(
-        15e2, 15e2, {"from": accounts[0]})
-    referral_contract.initialize({"from": accounts[0]})
+    bfr_binary_european_options_atm.configure(
+        15e2, 15e2, [0, 1, 2, 3], {"from": accounts[0]}
+    )
+    referral_contract.configure([1, 2, 3], [25e3, 50e3, 75e3], {"from": accounts[0]})
 
     router.setContractRegistry(bfr_binary_european_options_atm.address, True)
     router.setContractRegistry(binary_european_options_atm_2.address, True)
@@ -338,5 +340,5 @@ def contracts(
         "bfr_settlement_fee_disbursal": bfr_settlement_fee_disbursal,
         "publisher": publisher,
         "keeper_contract": keeper_contract,
-        'settlement_fee_disbursal': settlement_fee_disbursal
+        "settlement_fee_disbursal": settlement_fee_disbursal,
     }

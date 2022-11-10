@@ -3,7 +3,6 @@
 pragma solidity 0.8.4;
 
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
 import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import "../interfaces/Interfaces.sol";
@@ -12,7 +11,7 @@ import "../interfaces/Interfaces.sol";
  * @author Heisenberg
  * @notice Buffer Options Router Contract
  */
-contract OptionRouter is AccessControl, IOptionRouter {
+contract BufferRouter is AccessControl, IBufferRouter {
     bytes32 public constant BOT_ROLE = keccak256("BOT_ROLE");
     uint256 MAX_WAIT_TIME = 1 minutes;
     uint256 public nextQueueId = 0;

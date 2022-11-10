@@ -12,12 +12,11 @@ contract ReferralStorage is IReferralStorage, AccessControl {
 
     uint256 public constant BASIS_POINTS = 10000;
 
-    mapping(address => uint8) public override referrerTiers; // link between user <> tier
+    mapping(address => uint8) public override referrerTier; // link between user <> tier
     mapping(uint8 => Tier) public tiers;
-    mapping(uint8 => uint8) public override referrerTierToStep;
-    mapping(uint8 => uint256) public override referrerTierToDiscount;
-    mapping(address => uint8) public referrerToTier;
-    mapping(string => address) public override codeOwners;
+    mapping(uint8 => uint8) public override referrerTierStep;
+    mapping(uint8 => uint32) public override referrerTierDiscount;
+    mapping(string => address) public override codeOwner;
     mapping(address => string) public userCode;
     mapping(address => string) public override traderReferralCodes;
     bytes32 public constant OPTION_ISSUER_ROLE =
@@ -33,13 +32,24 @@ contract ReferralStorage is IReferralStorage, AccessControl {
         _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
     }
 
-    function initialize() external {
-        referrerTierToStep[0] = 1;
-        referrerTierToStep[1] = 2;
-        referrerTierToStep[2] = 3;
-        referrerTierToDiscount[0] = 25000; // 0.25%
-        referrerTierToDiscount[1] = 50000; // 0.50%
-        referrerTierToDiscount[2] = 75000; // 0.75%
+    function configure(
+        uint8[3] calldata _referrerTierStep,
+        uint32[3] calldata _referrerTierDiscount
+    ) external {
+        // referrerTierStep[0] = 1;
+        // referrerTierStep[1] = 2;
+        // referrerTierStep[2] = 3;
+
+        for (uint8 i = 0; i < 3; i++) {
+            referrerTierStep[i] = _referrerTierStep[i];
+        }
+        // referrerTierDiscount[0] = 25000; // 0.25%
+        // referrerTierDiscount[1] = 50000; // 0.50%
+        // referrerTierDiscount[2] = 75000; // 0.75%
+
+        for (uint8 i = 0; i < 3; i++) {
+            referrerTierDiscount[i] = _referrerTierDiscount[i];
+        }
     }
 
     /**
@@ -50,7 +60,7 @@ contract ReferralStorage is IReferralStorage, AccessControl {
         override
         onlyRole(DEFAULT_ADMIN_ROLE)
     {
-        referrerTiers[_referrer] = tier;
+        referrerTier[_referrer] = tier;
         emit UpdateReferrerTier(_referrer, tier);
     }
 
@@ -97,11 +107,11 @@ contract ReferralStorage is IReferralStorage, AccessControl {
     function registerCode(string memory _code) external {
         require(bytes(_code).length != 0, "ReferralStorage: invalid _code");
         require(
-            codeOwners[_code] == address(0),
+            codeOwner[_code] == address(0),
             "ReferralStorage: code already exists"
         );
 
-        codeOwners[_code] = msg.sender;
+        codeOwner[_code] = msg.sender;
         userCode[msg.sender] = _code;
         emit RegisterCode(msg.sender, _code);
     }
@@ -109,9 +119,9 @@ contract ReferralStorage is IReferralStorage, AccessControl {
     function setCodeOwner(string memory _code, address _newUser) external {
         require(bytes(_code).length != 0, "ReferralStorage: invalid _code");
 
-        require(msg.sender == codeOwners[_code], "ReferralStorage: forbidden");
+        require(msg.sender == codeOwner[_code], "ReferralStorage: forbidden");
 
-        codeOwners[_code] = _newUser;
+        codeOwner[_code] = _newUser;
         emit SetCodeOwner(msg.sender, _newUser, _code);
     }
 
@@ -123,7 +133,7 @@ contract ReferralStorage is IReferralStorage, AccessControl {
     {
         code = traderReferralCodes[user];
         if (bytes(code).length != 0) {
-            referrer = codeOwners[code];
+            referrer = codeOwner[code];
         }
     }
 

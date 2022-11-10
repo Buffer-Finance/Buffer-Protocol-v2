@@ -17,16 +17,16 @@ contract TraderNFT is ERC721, ERC721URIStorage, Ownable, ReentrancyGuard {
     Counters.Counter public tokenIdCounter;
     Counters.Counter public claimTokenIdCounter;
 
-    mapping(uint8 => uint256) public tokenTierMappings;
+    mapping(uint256 => uint8) public tokenTierMappings;
     mapping(uint256 => bool) public tokenMintMappings;
-    mapping(address => uint8) public userToTier;
+    mapping(address => uint8) public userTier;
 
     event UpdateNftBasePrice(uint256 nftBasePrice);
     event UpdateMaxNFTMintLimits(uint256 maxNFTMintLimit);
     event UpdateBaseURI(string baseURI);
 
     event Claim(uint256 claimTokenId, address account);
-    event Mint(uint256 tokenId, address account, uint256 tier);
+    event Mint(uint256 tokenId, address account, uint8 tier);
 
     address public admin;
 
@@ -37,7 +37,7 @@ contract TraderNFT is ERC721, ERC721URIStorage, Ownable, ReentrancyGuard {
     function safeMint(
         address to,
         string memory uri,
-        uint256 tier,
+        uint8 tier,
         uint256 claimtokenId
     ) public onlyOwner returns (uint256 tokenId) {
         require(
@@ -48,9 +48,12 @@ contract TraderNFT is ERC721, ERC721URIStorage, Ownable, ReentrancyGuard {
         tokenId = tokenIdCounter.current();
         tokenIdCounter.increment();
         tokenTierMappings[tokenId] = tier;
-        if (userToTier[to] < tier) {
-            userToTier[to] = tier;
+
+        // userTier[to] = max(userTier[to], tier) // TODO: Remove this, fix bug
+        if (userTier[to] < tier) {
+            userTier[to] = tier;
         }
+
         _safeMint(to, tokenId);
         _setTokenURI(tokenId, uri);
         tokenMintMappings[claimtokenId] = true;

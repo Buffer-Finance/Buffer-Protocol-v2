@@ -85,14 +85,14 @@ class BinaryOptionTesting(object):
 
     def init(self):
         with brownie.reverts("O27"):
-            self.tokenX_options.initialize(9e2, 20e2)
+            self.tokenX_options.configure(9e2, 20e2, [0, 1, 2, 3])
         with brownie.reverts("O28"):
-            self.tokenX_options.initialize(50e2, 20e2)
+            self.tokenX_options.configure(51e2, 20e2, [0, 1, 2, 3])
 
         with brownie.reverts("O27"):
-            self.tokenX_options.initialize(20e2, 9e2)
+            self.tokenX_options.configure(20e2, 9e2, [0, 1, 2, 3])
         with brownie.reverts("O28"):
-            self.tokenX_options.initialize(20e2, 50e2)
+            self.tokenX_options.configure(20e2, 51e2, [0, 1, 2, 3])
 
         self.tokenX.approve(
             self.generic_pool.address, self.liquidity, {"from": self.owner}

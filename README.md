@@ -94,13 +94,13 @@ While checking the coverage please note the following things:
     >> AccessControl.renounceRole - 0.0%
     >> Ownable.transferOwnership - 0.0%
 
-  contract: OptionRouter - 69.6%
-    OptionRouter._openQueuedTrade - 100.0%
-    OptionRouter._validateContract - 100.0%
-    OptionRouter._validateKeeper - 100.0%
-    OptionRouter.cancelQueuedTrade - 100.0%
-    OptionRouter.resolveQueuedTrades - 100.0%
-    OptionRouter.unlockOptions - 100.0%
+  contract: BufferRouter - 69.6%
+    BufferRouter._openQueuedTrade - 100.0%
+    BufferRouter._validateContract - 100.0%
+    BufferRouter._validateKeeper - 100.0%
+    BufferRouter.cancelQueuedTrade - 100.0%
+    BufferRouter.resolveQueuedTrades - 100.0%
+    BufferRouter.unlockOptions - 100.0%
     >> AccessControl._checkRole - 100.0%
     >> AccessControl._grantRole - 75.0%
     >> ECDSA.tryRecover - 37.5%

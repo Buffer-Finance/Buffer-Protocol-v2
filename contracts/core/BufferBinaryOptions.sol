@@ -22,9 +22,9 @@ contract BufferBinaryOptions is
     uint256 public nextTokenId = 0;
     uint256 public totalLockedAmount;
     bool public isPaused;
-    uint256 public baseSettlementFeePercentageForAbove; // Factor of 1e2
-    uint256 public baseSettlementFeePercentageForBelow; // Factor of 1e2
-    uint256 public stepSize = 250; // Factor of 1e2
+    uint16 public baseSettlementFeePercentageForAbove; // Factor of 1e2
+    uint16 public baseSettlementFeePercentageForBelow; // Factor of 1e2
+    uint16 public stepSize = 250; // Factor of 1e2
 
     ILiquidityPool public override pool;
     IOptionsConfig public override config;
@@ -34,7 +34,7 @@ contract BufferBinaryOptions is
 
     mapping(uint256 => Option) public override options;
     mapping(address => uint256[]) public userOptionIds;
-    mapping(uint8 => uint8) public nftTierToStep;
+    mapping(uint8 => uint8) public nftTierStep;
 
     bytes32 public constant ROUTER_ROLE = keccak256("ROUTER_ROLE");
     bytes32 public constant BOT_ROLE = keccak256("BOT_ROLE");
@@ -59,21 +59,27 @@ contract BufferBinaryOptions is
     }
 
     /**
-     * @notice Used to initialize the contracts and change and base settlement fee
+     * @notice Used to configure the contracts
      */
-    function initialize(
-        uint256 _baseSettlementFeePercentageForAbove,
-        uint256 _baseSettlementFeePercentageForBelow,
-        uint256 _nftTierToStep
+    function configure(
+        uint16 _baseSettlementFeePercentageForAbove,
+        uint16 _baseSettlementFeePercentageForBelow,
+        uint8[4] calldata _nftTierStep
     ) external onlyRole(DEFAULT_ADMIN_ROLE) {
         require(10e2 <= _baseSettlementFeePercentageForAbove, "O27");
         require(_baseSettlementFeePercentageForAbove <= 50e2, "O28");
-        require(10e2 <= _baseSettlementFeePercentageForBelow, "O27");
-        require(_baseSettlementFeePercentageForBelow <= 50e2, "O28");
         baseSettlementFeePercentageForAbove = _baseSettlementFeePercentageForAbove; // Percent with a factor of 1e2
 
+        require(10e2 <= _baseSettlementFeePercentageForBelow, "O27");
+        require(_baseSettlementFeePercentageForBelow <= 50e2, "O28");
+        baseSettlementFeePercentageForBelow = _baseSettlementFeePercentageForBelow;
+
+        // nftTierStep[0] = 0;
+        // nftTierStep[1] = 1;
+        // nftTierStep[2] = 2;
+        // nftTierStep[3] = 3;
         for (uint8 i; i < 4; i++) {
-            nftTierToStep[i] = _nftTierToStep[i];
+            nftTierStep[i] = _nftTierStep[i];
         }
     }
 
@@ -105,7 +111,7 @@ contract BufferBinaryOptions is
 
     /**
      * @notice Creates an option with the specified parameters
-     * @dev Can only be called router
+     * @dev Can only be called by router
      */
     function createFromRouter(
         address user,
@@ -134,7 +140,7 @@ contract BufferBinaryOptions is
         _mint(user, optionID);
 
         uint256 referrerFee = _processReferralRebate(
-            referral.codeOwners(referralCode),
+            referral.codeOwner(referralCode),
             user,
             totalFee,
             amount,
@@ -144,7 +150,7 @@ contract BufferBinaryOptions is
 
         uint256 settlementFee = totalFee - option.premium - referrerFee;
         ISettlementFeeDisbursal(config.settlementFeeDisbursalContract())
-            .distributeSettlementFee(settlementFee);
+            .distributeSettlementFee(settlementFee); // TODO: Check gas reduction on removing this
 
         pool.lock(optionID, option.lockedAmount, option.premium);
         emit Create(optionID, user, settlementFee, totalFee);
@@ -207,7 +213,7 @@ contract BufferBinaryOptions is
         )
     {
         uint256 settlementFeePercentage = _getSettlementFeePercentage(
-            referral.codeOwners(referralCode),
+            referral.codeOwner(referralCode),
             user,
             _getbaseSettlementFeePercentage(isAbove)
         );
@@ -337,7 +343,7 @@ contract BufferBinaryOptions is
 
         // --------- Calculate the amount here from the new fees
         uint256 settlementFeePercentage = _getSettlementFeePercentage(
-            referral.codeOwners(referralCode),
+            referral.codeOwner(referralCode),
             user,
             _getbaseSettlementFeePercentage(isAbove)
         );
@@ -385,7 +391,7 @@ contract BufferBinaryOptions is
     function _getbaseSettlementFeePercentage(bool isAbove)
         internal
         view
-        returns (uint256 baseSettlementFeePercentage)
+        returns (uint16 baseSettlementFeePercentage)
     {
         baseSettlementFeePercentage = isAbove
             ? baseSettlementFeePercentageForAbove
@@ -460,9 +466,9 @@ contract BufferBinaryOptions is
     ) internal returns (uint256 referrerFee) {
         if (referrer != user && referrer != address(0)) {
             referrerFee = ((totalFee *
-                referral.referrerTierToDiscount(
-                    referral.referrerToTier(referrer)
-                )) / 1e4);
+                referral.referrerTierDiscount(
+                    referral.referrerTier(referrer)
+                )) / (1e4 * 1e3));
             if (referrerFee > 0) {
                 tokenX.transfer(referrer, referrerFee);
                 referral.setReferrerReferralData(
@@ -501,13 +507,13 @@ contract BufferBinaryOptions is
         returns (bool isReferralValid, uint8 maxStep)
     {
         if (config.traderNFTContract() != address(0)) {
-            maxStep = nftTierToStep[
-                ITraderNFT(config.traderNFTContract()).userToTier(user)
+            maxStep = nftTierStep[
+                ITraderNFT(config.traderNFTContract()).userTier(user)
             ];
         }
         if (referrer != user && referrer != address(0)) {
-            uint8 step = referral.referrerTierToStep(
-                referral.referrerTiers(referrer)
+            uint8 step = referral.referrerTierStep(
+                referral.referrerTier(referrer)
             );
             if (step > maxStep) {
                 maxStep = step;
@@ -522,7 +528,7 @@ contract BufferBinaryOptions is
     function _getSettlementFeePercentage(
         address referrer,
         address user,
-        uint256 baseSettlementFeePercentage
+        uint16 baseSettlementFeePercentage
     ) internal view returns (uint256 settlementFeePercentage) {
         settlementFeePercentage = baseSettlementFeePercentage;
         (, uint256 maxStep) = _getSettlementFeeDiscount(referrer, user);

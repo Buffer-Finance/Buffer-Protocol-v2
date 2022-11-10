@@ -13,8 +13,8 @@ import "./BufferBinaryOptions.sol";
  */
 contract SettlementFeeDisbursal {
     ERC20 public tokenX;
-    OptionsConfig public config;
-    BufferBinaryOptions public optionsContract;
+    OptionsConfig public config; // TODO: Add interfaces
+    BufferBinaryOptions public optionsContract; // TODO: Add interfaces
     address treasury;
     address blpStaking;
     address bfrStaking;

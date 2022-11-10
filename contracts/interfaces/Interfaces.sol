@@ -22,11 +22,11 @@ interface IKeeperPayment {
         uint256 size,
         address keeper
     );
-    event UpdateOpenRewardPercent(uint256 value);
-    event UpdateReward(uint256 value);
+    event UpdateOpenRewardPercent(uint32 value);
+    event UpdateReward(uint32 value);
 }
 
-interface IOptionRouter {
+interface IBufferRouter {
     struct QueuedTrade {
         uint256 queueId;
         uint256 userQueueIndex;
@@ -262,11 +262,11 @@ interface ISettlementFeeDisbursal {
 }
 
 interface ITraderNFT {
-    function userToTier(address user) external view returns (uint8 tier);
+    function userTier(address user) external view returns (uint8 tier);
 }
 
 interface IReferralStorage {
-    function codeOwners(string memory _code) external view returns (address);
+    function codeOwner(string memory _code) external view returns (address);
 
     function traderReferralCodes(address) external view returns (string memory);
 
@@ -279,17 +279,17 @@ interface IReferralStorage {
 
     function setReferrerTier(address, uint8) external;
 
-    function referrerTierToStep(uint8 referralTier)
+    function referrerTierStep(uint8 referralTier)
         external
         view
         returns (uint8 step);
 
-    function referrerTierToDiscount(uint8 referralTier)
+    function referrerTierDiscount(uint8 referralTier)
         external
         view
-        returns (uint256 discount);
+        returns (uint32 discount);
 
-    function referrerTiers(address referrer) external view returns (uint8 tier);
+    function referrerTier(address referrer) external view returns (uint8 tier);
 
     function setUserReferralData(
         address user,
