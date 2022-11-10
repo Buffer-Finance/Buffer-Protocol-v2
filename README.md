@@ -14,8 +14,6 @@ Refer to this [link](https://docs.google.com/document/d/1mgnjQ1n5nbKeSUjqY5av2ak
 
 To build and compile:
 
-Replace the openzepplin path in the remappings in the [`config`](brownie-config.yaml) with your path and then run the following command
-
 ```bash
 brownie compile
 ```
