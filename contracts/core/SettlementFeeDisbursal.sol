@@ -2,7 +2,7 @@
 
 pragma solidity 0.8.4;
 
-import "./OptionConfigBinaryV2.sol";
+import "./OptionsConfig.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "./BufferBinaryOptions.sol";
 
@@ -13,7 +13,7 @@ import "./BufferBinaryOptions.sol";
  */
 contract SettlementFeeDisbursal {
     ERC20 public tokenX;
-    OptionConfigBinaryV2 public config;
+    OptionsConfig public config;
     BufferBinaryOptions public optionsContract;
     address treasury;
     address blpStaking;
@@ -28,7 +28,7 @@ contract SettlementFeeDisbursal {
 
     constructor(
         ERC20 _tokenX,
-        OptionConfigBinaryV2 _config,
+        OptionsConfig _config,
         BufferBinaryOptions _optionsContract,
         address _treasury,
         address _blpStaking,

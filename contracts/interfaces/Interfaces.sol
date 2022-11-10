@@ -1,5 +1,7 @@
-pragma solidity 0.8.4;
+// SPDX-License-Identifier: BUSL-1.1
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+
+pragma solidity 0.8.4;
 
 interface IKeeperPayment {
     function distributeForOpen(
@@ -119,6 +121,10 @@ interface IBufferBinaryOptions {
 
     function tokenX() external view returns (ERC20);
 
+    function pool() external view returns (ILiquidityPool);
+
+    function config() external view returns (IOptionsConfig);
+
     enum State {
         Inactive,
         Active,
@@ -223,6 +229,30 @@ interface IOptionsConfig {
     event UpdatetraderNFTContract(address value);
     event UpdateAssetUtilizationLimit(uint256 value);
     event UpdateMinFee(uint256 value);
+
+    function traderNFTContract() external view returns (address);
+
+    function settlementFeeDisbursalContract() external view returns (address);
+
+    function marketTimes(uint256)
+        external
+        view
+        returns (
+            uint256,
+            uint256,
+            uint256,
+            uint256
+        );
+
+    function assetUtilizationLimit() external view returns (uint256);
+
+    function overallPoolUtilizationLimit() external view returns (uint256);
+
+    function maxPeriod() external view returns (uint256);
+
+    function minFee() external view returns (uint256);
+
+    function optionFeePerTxnLimitPercent() external view returns (uint256);
 }
 
 interface ISettlementFeeDisbursal {
@@ -232,7 +262,7 @@ interface ISettlementFeeDisbursal {
 }
 
 interface ITraderNFT {
-    function userToTier(address user) external view returns (uint256 tier);
+    function userToTier(address user) external view returns (uint8 tier);
 }
 
 interface IReferralStorage {
@@ -240,30 +270,26 @@ interface IReferralStorage {
 
     function traderReferralCodes(address) external view returns (string memory);
 
-    function getTraderReferralInfo(address _account)
+    function getTraderReferralInfo(address user)
         external
         view
         returns (string memory, address);
 
-    function setTraderReferralCode(address _account, string memory _code)
-        external;
+    function setTraderReferralCode(address user, string memory _code) external;
 
-    function setReferrerTier(address _referrer, uint256 _tierId) external;
+    function setReferrerTier(address, uint8) external;
 
-    function ReferrerTierToStep(uint256 referralTier)
+    function referrerTierToStep(uint8 referralTier)
         external
         view
-        returns (uint256 step);
+        returns (uint8 step);
 
-    function ReferrerTierToDiscount(uint256 referralTier)
+    function referrerTierToDiscount(uint8 referralTier)
         external
         view
         returns (uint256 discount);
 
-    function ReferrerToTier(address referrer)
-        external
-        view
-        returns (uint256 tier);
+    function referrerTiers(address referrer) external view returns (uint8 tier);
 
     function setUserReferralData(
         address user,

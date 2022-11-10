@@ -2,7 +2,7 @@
 
 pragma solidity ^0.8.0;
 import "@openzeppelin/contracts/access/AccessControl.sol";
-import "../Interfaces/InterfacesBinary.sol";
+import "../interfaces/Interfaces.sol";
 
 contract ReferralStorage is IReferralStorage, AccessControl {
     struct Tier {
@@ -12,20 +12,19 @@ contract ReferralStorage is IReferralStorage, AccessControl {
 
     uint256 public constant BASIS_POINTS = 10000;
 
-    mapping(address => uint256) public referrerTiers; // link between user <> tier
-    mapping(uint256 => Tier) public tiers;
-    mapping(uint256 => uint256) public override ReferrerTierToStep;
-    mapping(uint256 => uint256) public override ReferrerTierToDiscount;
-    mapping(address => uint256) public override ReferrerToTier;
+    mapping(address => uint8) public override referrerTiers; // link between user <> tier
+    mapping(uint8 => Tier) public tiers;
+    mapping(uint8 => uint8) public override referrerTierToStep;
+    mapping(uint8 => uint256) public override referrerTierToDiscount;
+    mapping(address => uint8) public referrerToTier;
     mapping(string => address) public override codeOwners;
     mapping(address => string) public userCode;
     mapping(address => string) public override traderReferralCodes;
-    bytes32 public constant ADMIN_ROLE = keccak256("ADMIN_ROLE");
     bytes32 public constant OPTION_ISSUER_ROLE =
         keccak256("OPTION_ISSUER_ROLE");
 
-    event SetTraderReferralCode(address account, string code);
-    event SetReferrerTier(address referrer, uint256 tierId);
+    event UpdateTraderReferralCode(address account, string code);
+    event UpdateReferrerTier(address referrer, uint8 tierId);
     event RegisterCode(address account, string code);
     event SetCodeOwner(address account, address newAccount, string code);
     mapping(address => ReferralData) public UserReferralData;
@@ -35,32 +34,24 @@ contract ReferralStorage is IReferralStorage, AccessControl {
     }
 
     function initialize() external {
-        ReferrerTierToStep[0] = 1;
-        ReferrerTierToStep[1] = 2;
-        ReferrerTierToStep[2] = 3;
-        ReferrerTierToDiscount[0] = 25; // 0.25%
-        ReferrerTierToDiscount[1] = 50; // 0.50%
-        ReferrerTierToDiscount[2] = 75; // 0.75%
-        _setupRole(ADMIN_ROLE, msg.sender);
+        referrerTierToStep[0] = 1;
+        referrerTierToStep[1] = 2;
+        referrerTierToStep[2] = 3;
+        referrerTierToDiscount[0] = 25000; // 0.25%
+        referrerTierToDiscount[1] = 50000; // 0.50%
+        referrerTierToDiscount[2] = 75000; // 0.75%
     }
 
     /**
      * @notice Call this to set referrer's tier
      */
-    function setReferrerToTier(address referrer, uint256 tier)
-        external
-        onlyRole(ADMIN_ROLE)
-    {
-        ReferrerToTier[referrer] = tier;
-    }
-
-    function setReferrerTier(address _referrer, uint256 _tierId)
+    function setReferrerTier(address _referrer, uint8 tier)
         external
         override
-        onlyRole(ADMIN_ROLE)
+        onlyRole(DEFAULT_ADMIN_ROLE)
     {
-        referrerTiers[_referrer] = _tierId;
-        emit SetReferrerTier(_referrer, _tierId);
+        referrerTiers[_referrer] = tier;
+        emit UpdateReferrerTier(_referrer, tier);
     }
 
     function setUserReferralData(
@@ -70,12 +61,12 @@ contract ReferralStorage is IReferralStorage, AccessControl {
         string memory referralCode
     ) external override onlyRole(OPTION_ISSUER_ROLE) {
         if (bytes(traderReferralCodes[user]).length == 0) {
-            traderReferralCodes[user] = referralCode;
+            _setTraderReferralCode(user, referralCode);
         }
 
-        ReferralData storage referralDataOfUser = UserReferralData[user];
-        referralDataOfUser.referreeData.tradeVolume += totalFee;
-        referralDataOfUser.referreeData.rebate += rebate;
+        ReferralData storage userReferralData = UserReferralData[user];
+        userReferralData.referreeData.tradeVolume += totalFee;
+        userReferralData.referreeData.rebate += rebate;
     }
 
     function setReferrerReferralData(
@@ -91,12 +82,12 @@ contract ReferralStorage is IReferralStorage, AccessControl {
         referralDataOfReferrer.referrerData.rebate += discount;
     }
 
-    function setTraderReferralCode(address _account, string memory _code)
+    function setTraderReferralCode(address user, string memory _code)
         external
         override
-        onlyRole(ADMIN_ROLE)
+        onlyRole(DEFAULT_ADMIN_ROLE)
     {
-        _setTraderReferralCode(_account, _code);
+        _setTraderReferralCode(user, _code);
     }
 
     function setTraderReferralCodeByUser(string memory _code) external {
@@ -115,33 +106,29 @@ contract ReferralStorage is IReferralStorage, AccessControl {
         emit RegisterCode(msg.sender, _code);
     }
 
-    function setCodeOwner(string memory _code, address _newAccount) external {
+    function setCodeOwner(string memory _code, address _newUser) external {
         require(bytes(_code).length != 0, "ReferralStorage: invalid _code");
 
-        address account = codeOwners[_code];
-        require(msg.sender == account, "ReferralStorage: forbidden");
+        require(msg.sender == codeOwners[_code], "ReferralStorage: forbidden");
 
-        codeOwners[_code] = _newAccount;
-        emit SetCodeOwner(msg.sender, _newAccount, _code);
+        codeOwners[_code] = _newUser;
+        emit SetCodeOwner(msg.sender, _newUser, _code);
     }
 
-    function getTraderReferralInfo(address _account)
+    function getTraderReferralInfo(address user)
         external
         view
         override
         returns (string memory code, address referrer)
     {
-        code = traderReferralCodes[_account];
+        code = traderReferralCodes[user];
         if (bytes(code).length != 0) {
             referrer = codeOwners[code];
         }
-        return (code, referrer);
     }
 
-    function _setTraderReferralCode(address _account, string memory _code)
-        private
-    {
-        traderReferralCodes[_account] = _code;
-        emit SetTraderReferralCode(_account, _code);
+    function _setTraderReferralCode(address user, string memory _code) private {
+        traderReferralCodes[user] = _code;
+        emit UpdateTraderReferralCode(user, _code);
     }
 }

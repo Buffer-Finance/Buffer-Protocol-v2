@@ -92,15 +92,12 @@ class Router(object):
         self.bfr_pool.provide(100e18, 0, {"from": self.owner})
 
     def verify_owner(self):
-        assert (
-            self.tokenX_options.owner() == self.accounts[0]
-        ), "The owner of the contract should be the account the contract was deployed by"
-        assert self.router.hasRole(
-            self.router.BOT_ROLE(), self.bot
-        ), "The owner of the contract should be the account the contract was deployed by"
+        assert self.tokenX_options.hasRole(
+            self.tokenX_options.DEFAULT_ADMIN_ROLE(), self.accounts[0]
+        ), "The admin of the contract should be the account the contract was deployed by"
         assert self.tokenX_options.hasRole(
             self.router.BOT_ROLE(), self.bot
-        ), "The owner of the contract should be the account the contract was deployed by"
+        ), "The bot role should be with the bot account"
 
     def verify_target_contract_registration(self):
         with brownie.reverts("Router: Unauthorized contract"):
@@ -137,11 +134,9 @@ class Router(object):
 
     def verify_multitoken_router(self):
         self.chain.snapshot()
-        self.tokenX.approve(self.router.address,
-                            self.total_fee, {"from": self.owner})
+        self.tokenX.approve(self.router.address, self.total_fee, {"from": self.owner})
         self.tokenX.transfer(self.user_1, self.total_fee, {"from": self.owner})
-        self.tokenX.approve(self.router.address, self.total_fee, {
-                            "from": self.user_1})
+        self.tokenX.approve(self.router.address, self.total_fee, {"from": self.user_1})
 
         initial_user_tokenX_balance = self.tokenX.balanceOf(self.user_1)
         initial_user_bfr_balance = self.bfr.balanceOf(self.user_1)
@@ -295,15 +290,12 @@ class Router(object):
                 {"from": self.owner},
             )
 
-        self.tokenX.approve(self.router.address,
-                            self.total_fee, {"from": self.owner})
+        self.tokenX.approve(self.router.address, self.total_fee, {"from": self.owner})
         self.tokenX.transfer(self.user_1, self.total_fee, {"from": self.owner})
-        self.tokenX.approve(self.router.address, self.total_fee, {
-                            "from": self.user_1})
+        self.tokenX.approve(self.router.address, self.total_fee, {"from": self.user_1})
 
         initial_user_tokenX_balance = self.tokenX.balanceOf(self.user_1)
-        initial_router_tokenX_balance = self.tokenX.balanceOf(
-            self.router.address)
+        initial_router_tokenX_balance = self.tokenX.balanceOf(self.router.address)
 
         params = (
             self.total_fee,
@@ -321,8 +313,7 @@ class Router(object):
         )
 
         final_user_tokenX_balance = self.tokenX.balanceOf(self.user_1)
-        final_router_tokenX_balance = self.tokenX.balanceOf(
-            self.router.address)
+        final_router_tokenX_balance = self.tokenX.balanceOf(self.router.address)
 
         trade = list(self.router.queuedTrades(0))
 
@@ -364,14 +355,12 @@ class Router(object):
             self.router.cancelQueuedTrade(0, {"from": self.bot})
 
         initial_user_tokenX_balance = self.tokenX.balanceOf(self.user_1)
-        initial_router_tokenX_balance = self.tokenX.balanceOf(
-            self.router.address)
+        initial_router_tokenX_balance = self.tokenX.balanceOf(self.router.address)
 
         txn = self.router.cancelQueuedTrade(0, {"from": self.user_1})
 
         final_user_tokenX_balance = self.tokenX.balanceOf(self.user_1)
-        final_router_tokenX_balance = self.tokenX.balanceOf(
-            self.router.address)
+        final_router_tokenX_balance = self.tokenX.balanceOf(self.router.address)
 
         with brownie.reverts("Router: Trade has already been opened"):
             self.router.cancelQueuedTrade(0, {"from": self.user_1})
@@ -471,8 +460,7 @@ class Router(object):
             ],
             {"from": self.bot},
         )
-        final_router_tokenX_balance = self.tokenX.balanceOf(
-            self.router.address)
+        final_router_tokenX_balance = self.tokenX.balanceOf(self.router.address)
         assert final_router_tokenX_balance == 0, "Wrong router balance"
         assert (
             txn.events["CancelTrade"]
@@ -527,8 +515,7 @@ class Router(object):
         )
 
         final_user_tokenX_balance = self.tokenX.balanceOf(self.user_1)
-        final_router_tokenX_balance = self.tokenX.balanceOf(
-            self.router.address)
+        final_router_tokenX_balance = self.tokenX.balanceOf(self.router.address)
 
         assert final_router_tokenX_balance == 0, "Wrong router balance"
         assert (
@@ -539,8 +526,7 @@ class Router(object):
 
         # Initiating a trade with amount greater than 5% of available liquidity
         self.tokenX.transfer(self.user_2, self.total_fee, {"from": self.owner})
-        self.tokenX.approve(self.router.address, self.total_fee, {
-                            "from": self.user_2})
+        self.tokenX.approve(self.router.address, self.total_fee, {"from": self.user_2})
         params = (
             self.total_fee,
             self.period,
@@ -579,8 +565,7 @@ class Router(object):
         )
 
         final_user_tokenX_balance = self.tokenX.balanceOf(self.user_2)
-        final_router_tokenX_balance = self.tokenX.balanceOf(
-            self.router.address)
+        final_router_tokenX_balance = self.tokenX.balanceOf(self.router.address)
 
         assert final_router_tokenX_balance == 0, "Wrong router balance"
         assert (
@@ -612,11 +597,9 @@ class Router(object):
 
         # Executing multiple trades at once
         self.tokenX.transfer(self.user_2, self.total_fee, {"from": self.owner})
-        self.tokenX.approve(self.router.address, self.total_fee, {
-                            "from": self.user_2})
+        self.tokenX.approve(self.router.address, self.total_fee, {"from": self.user_2})
         self.tokenX.transfer(self.user_1, self.total_fee, {"from": self.owner})
-        self.tokenX.approve(self.router.address, self.total_fee, {
-                            "from": self.user_1})
+        self.tokenX.approve(self.router.address, self.total_fee, {"from": self.user_1})
 
         self.router.initiateTrade(
             *params,
@@ -702,8 +685,7 @@ class Router(object):
         # Cancel when amount is too high and partial fill is disabled
         self.chain.sleep(10 * 60 + 1)
         self.generic_pool.withdraw(
-            self.generic_pool.availableBalance(
-            ) * 100 // 100, {"from": self.owner}
+            self.generic_pool.availableBalance() * 100 // 100, {"from": self.owner}
         )
         self.router.initiateTrade(
             self.total_fee * 200,
@@ -759,8 +741,7 @@ class Router(object):
             {"from": self.owner},
         )
         self.generic_pool.withdraw(
-            self.generic_pool.availableBalance(
-            ) * 90 // 100, {"from": self.owner}
+            self.generic_pool.availableBalance() * 90 // 100, {"from": self.owner}
         )
 
         self.router.initiateTrade(
@@ -1018,10 +999,8 @@ class Router(object):
         option_1 = self.tokenX_options.options(0)
         option_2 = self.tokenX_options.options(1)
 
-        close_params_1 = (
-            option_1[5], self.tokenX_options.address, option_1[1] * 2)
-        close_params_2 = (
-            option_2[5], self.tokenX_options.address, option_2[1] // 2)
+        close_params_1 = (option_1[5], self.tokenX_options.address, option_1[1] * 2)
+        close_params_2 = (option_2[5], self.tokenX_options.address, option_2[1] // 2)
         with brownie.reverts():  # Keeper not verified
             self.router.unlockOptions(
                 [

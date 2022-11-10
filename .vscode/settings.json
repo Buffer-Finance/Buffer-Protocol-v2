@@ -1,0 +1,23 @@
+{
+    "editor.formatOnSave": true,
+    "python.formatting.provider": "black",
+    "[solidity]": {
+        "editor.defaultFormatter": "JuanBlanco.solidity"
+    },
+    "editor.codeActionsOnSave": {
+        "source.organizeImports": true
+    },
+    "python.linting.mypyEnabled": true,
+    "python.envFile": "${workspaceRoot}/.env",
+    "solidity.remappings": [
+        "@openzeppelin=/home/<<USERNAME>>/.brownie/packages/OpenZeppelin/openzeppelin-contracts@4.3.2"
+    ],
+    "solidity.packageDefaultDependenciesContractsDirectory": "app/buffer-contracts-v6",
+    "solidity.compileUsingRemoteVersion": "0.8.4",
+    "solidity.enabledAsYouTypeCompilationErrorCheck": true,
+    "solidity.packageDefaultDependenciesDirectory": "app/buffer-contracts/node_modules",
+    "solidity.linter": "solhint",
+    "solidity.solhintRules": {
+        "avoid-sha3": "warn"
+    }
+}

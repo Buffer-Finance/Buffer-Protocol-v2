@@ -41,7 +41,7 @@ class BinaryOptionTesting(object):
         publisher,
         keeper_contract,
         ibfr_contract,
-        settlement_fee_disbursal
+        settlement_fee_disbursal,
     ):
         self.bfr = ibfr_contract
         self.settlement_fee_disbursal = settlement_fee_disbursal
@@ -117,7 +117,7 @@ class BinaryOptionTesting(object):
         self.keeper_contract.withdraw()
         final_balance = self.bfr.balanceOf(self.owner)
 
-        assert final_balance - initial_balance == balance, 'Wrong balance'
+        assert final_balance - initial_balance == balance, "Wrong balance"
 
         self.chain.revert()
 
@@ -125,20 +125,18 @@ class BinaryOptionTesting(object):
         self.chain.snapshot()
 
         (code, referrer) = self.referral_contract.getTraderReferralInfo(self.user_1)
-        assert code == '' and referrer == ADDRESS_0, 'Wrong ref data'
+        assert code == "" and referrer == ADDRESS_0, "Wrong ref data"
 
-        self.referral_contract.setTraderReferralCodeByUser(
-            '123', {'from': self.user_1})
+        self.referral_contract.setTraderReferralCodeByUser("123", {"from": self.user_1})
 
         (code, referrer) = self.referral_contract.getTraderReferralInfo(self.user_1)
-        assert code == '123' and referrer == ADDRESS_0, 'Wrong ref data'
+        assert code == "123" and referrer == ADDRESS_0, "Wrong ref data"
 
-        self.referral_contract.registerCode('123', {'from': self.user_1})
+        self.referral_contract.registerCode("123", {"from": self.user_1})
 
         with brownie.reverts("ReferralStorage: forbidden"):
-            self.referral_contract.setCodeOwner('123', self.user_2)
-        self.referral_contract.setCodeOwner(
-            '123', self.user_2, {'from': self.user_1})
+            self.referral_contract.setCodeOwner("123", self.user_2)
+        self.referral_contract.setCodeOwner("123", self.user_2, {"from": self.user_1})
 
         self.chain.revert()
 
@@ -149,8 +147,7 @@ class BinaryOptionTesting(object):
         with brownie.reverts("Utilization value too high"):
             self.options_config.setAssetUtilizationLimit(112e2)
         with brownie.reverts():  # Wrong role
-            self.options_config.setAssetUtilizationLimit(
-                10e2, {"from": self.user_1})
+            self.options_config.setAssetUtilizationLimit(10e2, {"from": self.user_1})
         self.options_config.setAssetUtilizationLimit(52e2)
         assert self.options_config.assetUtilizationLimit() == 52e2
 
@@ -159,7 +156,8 @@ class BinaryOptionTesting(object):
             self.options_config.setOverallPoolUtilizationLimit(112e2)
         with brownie.reverts():  # Wrong role
             self.options_config.setOverallPoolUtilizationLimit(
-                10e2, {"from": self.user_1})
+                10e2, {"from": self.user_1}
+            )
         self.options_config.setOverallPoolUtilizationLimit(52e2)
         assert self.options_config.overallPoolUtilizationLimit() == 52e2
 
@@ -167,8 +165,7 @@ class BinaryOptionTesting(object):
         with brownie.reverts("MaxPeriod needs to be greater than 5 minutes"):
             self.options_config.setMaxPeriod(100)
         with brownie.reverts():  # Wrong role
-            self.options_config.setMaxPeriod(
-                86400, {"from": self.user_1})
+            self.options_config.setMaxPeriod(86400, {"from": self.user_1})
         self.options_config.setMaxPeriod(86400)
         assert self.options_config.maxPeriod() == 86400
 
@@ -177,31 +174,35 @@ class BinaryOptionTesting(object):
             self.options_config.setStakingFeePercentages(10, 20, 20, 110)
         with brownie.reverts():  # Wrong role
             self.options_config.setStakingFeePercentages(
-                3, 65, 27, 5, {"from": self.user_1})
-        self.options_config.setStakingFeePercentages(3, 65, 27, 5, )
+                3, 65, 27, 5, {"from": self.user_1}
+            )
+        self.options_config.setStakingFeePercentages(
+            3,
+            65,
+            27,
+            5,
+        )
         assert self.options_config.treasuryPercentage() == 3
         assert self.options_config.blpStakingPercentage() == 65
         assert self.options_config.bfrStakingPercentage() == 27
         assert self.options_config.insuranceFundPercentage() == 5
 
         with brownie.reverts():  # Wrong role
-            self.options_config.transferOwnership(
-                self.user_2, {"from": self.user_1})
+            self.options_config.transferOwnership(self.user_2, {"from": self.user_1})
         with brownie.reverts():  # Wrong address
-            self.options_config.transferOwnership(
-                ADDRESS_0)
+            self.options_config.transferOwnership(ADDRESS_0)
         self.options_config.transferOwnership(self.user_2)
-        assert self.options_config.owner() == self.user_2, 'Wrong owner'
+        assert self.options_config.owner() == self.user_2, "Wrong owner"
 
         self.chain.revert()
 
     def verify_owner(self):
-        assert (
-            self.tokenX_options.owner() == self.accounts[0]
-        ), "The owner of the contract should be the account the contract was deployed by"
+        assert self.tokenX_options.hasRole(
+            self.tokenX_options.DEFAULT_ADMIN_ROLE(), self.accounts[0]
+        ), "The admin of the contract should be the account the contract was deployed by"
         assert self.tokenX_options.hasRole(
             self.router.BOT_ROLE(), self.bot
-        ), "The owner of the contract should be the account the contract was deployed by"
+        ), "The bot role should be with the bot account"
 
     def verify_option_states(
         self,
@@ -214,7 +215,6 @@ class BinaryOptionTesting(object):
         expected_total_fee,
         expected_settlement_fee,
         pool_balance_diff,
-        expected_option_count,
         txn,
     ):
         (
@@ -243,13 +243,9 @@ class BinaryOptionTesting(object):
         ), "Wrong option balance"
         assert pool_balance_diff == expected_premium, "Wrong premium transferred"
         assert (
-            self.generic_pool.lockedLiquidity(
-                self.tokenX_options.address, option_id)[0]
+            self.generic_pool.lockedLiquidity(self.tokenX_options.address, option_id)[0]
             == locked_amount
         ), "Wrong liquidity locked"
-        assert (
-            self.tokenX_options.userOptionCount(user) == expected_option_count
-        ), "Wrong user data"
         assert self.tokenX_options.ownerOf(option_id) == user, "Wrong owner"
 
         assert (
@@ -282,17 +278,21 @@ class BinaryOptionTesting(object):
             (0, 0, 15, 59),
             (0, 0, 0, 0),
         ]
+
+        # Set the current time at 5,0 of the day
         currentTime = self.chain.time()
+        self.chain.sleep(86400 - (currentTime % 86400) + (5 * 3600))
+        currentTime = self.chain.time()
+
         currentDay = ((currentTime // 86400) + 4) % 7
-        self.tokenX.transfer(self.user_1, self.total_fee *
-                             10, {"from": self.owner})
+        self.tokenX.transfer(self.user_1, self.total_fee * 10, {"from": self.owner})
         self.tokenX.approve(
             self.router.address, self.total_fee * 10, {"from": self.user_1}
         )
         next_id = self.router.nextQueueId()
         _params = (
             self.total_fee,
-            self.period,
+            self.period,  # slightly less then a day
             self.is_above,
             self.forex_option.address,
             self.expected_strike,
@@ -301,7 +301,7 @@ class BinaryOptionTesting(object):
             self.referral_code,
         )
 
-        # SHouldn't allow forex trades when market times haven't been set
+        # Shouldn't allow forex trades when market times haven't been set
         self.chain.snapshot()
         self.router.initiateTrade(
             *_params,
@@ -331,6 +331,7 @@ class BinaryOptionTesting(object):
         )
         self.chain.revert()
 
+        # Only the options config owner can set the market time
         with brownie.reverts("Ownable: caller is not the owner"):
             self.options_config.setMarketTime(
                 market_times,
@@ -373,9 +374,11 @@ class BinaryOptionTesting(object):
         )
         self.chain.revert()
 
+        # Should open intra-day trades
+
         params = (
             self.total_fee,
-            300,
+            300,  # 5mins
             self.is_above,
             self.forex_option.address,
             self.expected_strike,
@@ -384,7 +387,6 @@ class BinaryOptionTesting(object):
             self.referral_code,
         )
 
-        # Should open intra-day trades
         self.chain.snapshot()
         self.router.initiateTrade(
             *params,
@@ -601,8 +603,7 @@ class BinaryOptionTesting(object):
 
     def verify_creation_with_referral_and_no_nft(self):
         self.chain.snapshot()
-        self.tokenX.transfer(self.user_5, self.total_fee *
-                             3, {"from": self.owner})
+        self.tokenX.transfer(self.user_5, self.total_fee * 3, {"from": self.owner})
         self.tokenX.approve(
             self.router.address, self.total_fee * 3, {"from": self.user_5}
         )
@@ -623,7 +624,7 @@ class BinaryOptionTesting(object):
             self.referral_code,
             {"from": self.referrer},
         )
-        with brownie.reverts('ReferralStorage: code already exists'):
+        with brownie.reverts("ReferralStorage: code already exists"):
             self.referral_contract.registerCode(
                 self.referral_code,
                 {"from": self.user_2},
@@ -639,8 +640,7 @@ class BinaryOptionTesting(object):
 
         initial_referrer_tokenX_balance = self.tokenX.balanceOf(self.referrer)
         initial_user_tokenX_balance = self.tokenX.balanceOf(self.user_5)
-        initial_pool_tokenX_balance = self.tokenX.balanceOf(
-            self.generic_pool.address)
+        initial_pool_tokenX_balance = self.tokenX.balanceOf(self.generic_pool.address)
 
         queued_trade = self.router.queuedTrades(queue_id)
         open_params_1 = [
@@ -664,8 +664,7 @@ class BinaryOptionTesting(object):
 
         final_referrer_tokenX_balance = self.tokenX.balanceOf(self.referrer)
         final_user_tokenX_balance = self.tokenX.balanceOf(self.user_5)
-        final_pool_tokenX_balance = self.tokenX.balanceOf(
-            self.generic_pool.address)
+        final_pool_tokenX_balance = self.tokenX.balanceOf(self.generic_pool.address)
 
         option_id = txn.events["Create"]["id"]
 
@@ -687,14 +686,12 @@ class BinaryOptionTesting(object):
             self.total_fee,
             197500,
             final_pool_tokenX_balance - initial_pool_tokenX_balance,
-            1,
             txn,
         )
         self.chain.revert()
 
     def verify_creation_with_no_referral_and_no_nft(self):
-        self.tokenX.transfer(self.user_1, self.total_fee *
-                             3, {"from": self.owner})
+        self.tokenX.transfer(self.user_1, self.total_fee * 3, {"from": self.owner})
         self.tokenX.approve(
             self.router.address, self.total_fee * 3, {"from": self.user_1}
         )
@@ -709,8 +706,7 @@ class BinaryOptionTesting(object):
             self.allow_partial_fill,
             self.referral_code,
         )
-        self.referral_contract.setReferrerToTier(
-            self.user_1, 1, {"from": self.owner})
+        self.referral_contract.setReferrerTier(self.user_1, 1, {"from": self.owner})
         self.referral_contract.registerCode(
             self.referral_code,
             {"from": self.user_1},
@@ -721,8 +717,7 @@ class BinaryOptionTesting(object):
         )
 
         initial_user_tokenX_balance = self.tokenX.balanceOf(self.user_1)
-        initial_pool_tokenX_balance = self.tokenX.balanceOf(
-            self.generic_pool.address)
+        initial_pool_tokenX_balance = self.tokenX.balanceOf(self.generic_pool.address)
         initial_locked_amount = self.tokenX_options.totalLockedAmount()
         queued_trade = self.router.queuedTrades(0)
         open_params_1 = [
@@ -743,8 +738,7 @@ class BinaryOptionTesting(object):
             {"from": self.bot},
         )
         final_user_tokenX_balance = self.tokenX.balanceOf(self.user_1)
-        final_pool_tokenX_balance = self.tokenX.balanceOf(
-            self.generic_pool.address)
+        final_pool_tokenX_balance = self.tokenX.balanceOf(self.generic_pool.address)
         final_locked_amount = self.tokenX_options.totalLockedAmount()
         assert txn.events["OpenTrade"], "Trade not opened"
         assert (
@@ -761,11 +755,11 @@ class BinaryOptionTesting(object):
             self.total_fee,
             230770,
             final_pool_tokenX_balance - initial_pool_tokenX_balance,
-            1,
             txn,
         )
 
         # No referral discount is case referrer is the owner
+        # This requirement is mute now but we are keeping the remaining test case as it affects rest of the state of the system
         self.referral_code = "code12345"
 
         params = (
@@ -778,19 +772,17 @@ class BinaryOptionTesting(object):
             self.allow_partial_fill,
             self.referral_code,
         )
-        self.referral_contract.setReferrerToTier(
-            self.owner, 1, {"from": self.owner})
-        self.referral_contract.registerCode(
-            self.referral_code,
-            {"from": self.owner},
-        )
+        # self.referral_contract.setReferrerTier(self.owner, 1, {"from": self.owner})
+        # self.referral_contract.registerCode(
+        #     self.referral_code,
+        #     {"from": self.owner},
+        # )
         self.router.initiateTrade(
             *params,
             {"from": self.user_1},
         )
         initial_user_tokenX_balance = self.tokenX.balanceOf(self.user_1)
-        initial_pool_tokenX_balance = self.tokenX.balanceOf(
-            self.generic_pool.address)
+        initial_pool_tokenX_balance = self.tokenX.balanceOf(self.generic_pool.address)
 
         queued_trade = self.router.queuedTrades(1)
         open_params_1 = [
@@ -811,8 +803,7 @@ class BinaryOptionTesting(object):
             {"from": self.bot},
         )
         final_user_tokenX_balance = self.tokenX.balanceOf(self.user_1)
-        final_pool_tokenX_balance = self.tokenX.balanceOf(
-            self.generic_pool.address)
+        final_pool_tokenX_balance = self.tokenX.balanceOf(self.generic_pool.address)
         assert txn.events["OpenTrade"], "Trade not opened"
         assert (
             final_user_tokenX_balance - initial_user_tokenX_balance == 0
@@ -827,7 +818,6 @@ class BinaryOptionTesting(object):
             self.total_fee,
             230770,
             final_pool_tokenX_balance - initial_pool_tokenX_balance,
-            2,
             txn,
         )
         self.router.initiateTrade(
@@ -856,14 +846,12 @@ class BinaryOptionTesting(object):
     def verify_creation_with_no_referral_and_nft(self):
         self.chain.snapshot()
 
-        self.tokenX.transfer(self.user_1, self.total_fee *
-                             3, {"from": self.owner})
+        self.tokenX.transfer(self.user_1, self.total_fee * 3, {"from": self.owner})
         self.tokenX.approve(
             self.router.address, self.total_fee * 3, {"from": self.user_1}
         )
         metadata_hash = "QmRu61jShPgiQp33UA5RNcULAvLU5JEPbnXGqEtBmVcdMg"
-        self.trader_nft_contract.claim(
-            {"from": self.user_1, "value": "2 ether"})
+        self.trader_nft_contract.claim({"from": self.user_1, "value": "2 ether"})
         self.trader_nft_contract.safeMint(
             self.user_1,
             metadata_hash,
@@ -888,8 +876,7 @@ class BinaryOptionTesting(object):
         )
         expected_amount = 1600000
         initial_user_tokenX_balance = self.tokenX.balanceOf(self.user_1)
-        initial_pool_tokenX_balance = self.tokenX.balanceOf(
-            self.generic_pool.address)
+        initial_pool_tokenX_balance = self.tokenX.balanceOf(self.generic_pool.address)
         initial_locked_amount = self.tokenX_options.totalLockedAmount()
 
         queued_trade = self.router.queuedTrades(3)
@@ -911,8 +898,7 @@ class BinaryOptionTesting(object):
             {"from": self.bot},
         )
         final_user_tokenX_balance = self.tokenX.balanceOf(self.user_1)
-        final_pool_tokenX_balance = self.tokenX.balanceOf(
-            self.generic_pool.address)
+        final_pool_tokenX_balance = self.tokenX.balanceOf(self.generic_pool.address)
         final_locked_amount = self.tokenX_options.totalLockedAmount()
         assert txn.events["OpenTrade"], "Trade not opened"
         assert (
@@ -929,7 +915,6 @@ class BinaryOptionTesting(object):
             self.total_fee,
             200000,
             final_pool_tokenX_balance - initial_pool_tokenX_balance,
-            4,
             txn,
         )
 
@@ -937,8 +922,7 @@ class BinaryOptionTesting(object):
 
     def verify_creation_with_referral_and_nft(self):
         # Case 1 : referrer tier > nft tier
-        self.referral_contract.setReferrerToTier(
-            self.referrer, 1, {"from": self.owner})
+        self.referral_contract.setReferrerTier(self.referrer, 1, {"from": self.owner})
         self.referral_contract.registerCode(
             self.referral_code,
             {"from": self.referrer},
@@ -948,14 +932,12 @@ class BinaryOptionTesting(object):
             self.referral_code,
             {"from": self.user_1},
         )
-        self.tokenX.transfer(self.user_1, self.total_fee *
-                             3, {"from": self.owner})
+        self.tokenX.transfer(self.user_1, self.total_fee * 3, {"from": self.owner})
         self.tokenX.approve(
             self.router.address, self.total_fee * 3, {"from": self.user_1}
         )
         metadata_hash = "QmRu61jShPgiQp33UA5RNcULAvLU5JEPbnXGqEtBmVcdMg"
-        self.trader_nft_contract.claim(
-            {"from": self.user_1, "value": "2 ether"})
+        self.trader_nft_contract.claim({"from": self.user_1, "value": "2 ether"})
         self.trader_nft_contract.safeMint(
             self.user_1,
             metadata_hash,
@@ -980,8 +962,7 @@ class BinaryOptionTesting(object):
         )
         expected_amount = 1666666
         initial_user_tokenX_balance = self.tokenX.balanceOf(self.user_1)
-        initial_pool_tokenX_balance = self.tokenX.balanceOf(
-            self.generic_pool.address)
+        initial_pool_tokenX_balance = self.tokenX.balanceOf(self.generic_pool.address)
         initial_locked_amount = self.tokenX_options.totalLockedAmount()
         initial_referrer_tokenX_balance = self.tokenX.balanceOf(self.referrer)
 
@@ -1005,8 +986,7 @@ class BinaryOptionTesting(object):
         )
         final_referrer_tokenX_balance = self.tokenX.balanceOf(self.referrer)
         final_user_tokenX_balance = self.tokenX.balanceOf(self.user_1)
-        final_pool_tokenX_balance = self.tokenX.balanceOf(
-            self.generic_pool.address)
+        final_pool_tokenX_balance = self.tokenX.balanceOf(self.generic_pool.address)
         final_locked_amount = self.tokenX_options.totalLockedAmount()
 
         assert (
@@ -1027,15 +1007,13 @@ class BinaryOptionTesting(object):
             self.total_fee,
             161667.0,
             final_pool_tokenX_balance - initial_pool_tokenX_balance,
-            1,
             txn,
         )
 
         self.chain.revert()
 
         # Case 2 : referrer tier < nft tier
-        self.referral_contract.setReferrerToTier(
-            self.referrer, 0, {"from": self.owner})
+        self.referral_contract.setReferrerTier(self.referrer, 0, {"from": self.owner})
         self.referral_contract.registerCode(
             self.referral_code,
             {"from": self.referrer},
@@ -1045,14 +1023,12 @@ class BinaryOptionTesting(object):
             self.referral_code,
             {"from": self.user_1},
         )
-        self.tokenX.transfer(self.user_1, self.total_fee *
-                             3, {"from": self.owner})
+        self.tokenX.transfer(self.user_1, self.total_fee * 3, {"from": self.owner})
         self.tokenX.approve(
             self.router.address, self.total_fee * 3, {"from": self.user_1}
         )
         metadata_hash = "QmRu61jShPgiQp33UA5RNcULAvLU5JEPbnXGqEtBmVcdMg"
-        self.trader_nft_contract.claim(
-            {"from": self.user_1, "value": "2 ether"})
+        self.trader_nft_contract.claim({"from": self.user_1, "value": "2 ether"})
         self.trader_nft_contract.safeMint(
             self.user_1,
             metadata_hash,
@@ -1077,8 +1053,7 @@ class BinaryOptionTesting(object):
         )
         expected_amount = 1666666
         initial_user_tokenX_balance = self.tokenX.balanceOf(self.user_1)
-        initial_pool_tokenX_balance = self.tokenX.balanceOf(
-            self.generic_pool.address)
+        initial_pool_tokenX_balance = self.tokenX.balanceOf(self.generic_pool.address)
         initial_locked_amount = self.tokenX_options.totalLockedAmount()
         initial_referrer_tokenX_balance = self.tokenX.balanceOf(self.referrer)
 
@@ -1102,8 +1077,7 @@ class BinaryOptionTesting(object):
         )
         final_referrer_tokenX_balance = self.tokenX.balanceOf(self.referrer)
         final_user_tokenX_balance = self.tokenX.balanceOf(self.user_1)
-        final_pool_tokenX_balance = self.tokenX.balanceOf(
-            self.generic_pool.address)
+        final_pool_tokenX_balance = self.tokenX.balanceOf(self.generic_pool.address)
         final_locked_amount = self.tokenX_options.totalLockedAmount()
 
         assert (
@@ -1122,16 +1096,14 @@ class BinaryOptionTesting(object):
             expected_amount // 2,
             self.is_above,
             self.total_fee,
-            166667-2500,
+            166667 - 2500,
             final_pool_tokenX_balance - initial_pool_tokenX_balance,
-            1,
             txn,
         )
         self.chain.revert()
 
     def verify_put_creation_with_less_liquidity(self):
-        self.tokenX.transfer(self.user_1, self.total_fee *
-                             2, {"from": self.owner})
+        self.tokenX.transfer(self.user_1, self.total_fee * 2, {"from": self.owner})
         self.tokenX.approve(
             self.router.address, self.total_fee * 2, {"from": self.user_1}
         )
@@ -1146,6 +1118,7 @@ class BinaryOptionTesting(object):
             self.allow_partial_fill,
             self.referral_code,
         )
+        next_id = self.router.nextQueueId()
 
         self.router.initiateTrade(
             *params,
@@ -1161,9 +1134,9 @@ class BinaryOptionTesting(object):
             self.tokenX_options.getMaxUtilization(),
         )
         initial_user_tokenX_balance = self.tokenX.balanceOf(self.user_1)
-        initial_pool_tokenX_balance = self.tokenX.balanceOf(
-            self.generic_pool.address)
-        queued_trade = self.router.queuedTrades(3)
+        initial_pool_tokenX_balance = self.tokenX.balanceOf(self.generic_pool.address)
+
+        queued_trade = self.router.queuedTrades(next_id)
         open_params_1 = [
             queued_trade[10],
             self.tokenX_options.address,
@@ -1172,7 +1145,7 @@ class BinaryOptionTesting(object):
         txn = self.router.resolveQueuedTrades(
             [
                 (
-                    3,
+                    next_id,
                     *open_params_1,
                     self.get_signature(
                         *open_params_1,
@@ -1182,15 +1155,14 @@ class BinaryOptionTesting(object):
             {"from": self.bot},
         )
         final_user_tokenX_balance = self.tokenX.balanceOf(self.user_1)
-        final_pool_tokenX_balance = self.tokenX.balanceOf(
-            self.generic_pool.address)
+        final_pool_tokenX_balance = self.tokenX.balanceOf(self.generic_pool.address)
         assert txn.events["OpenTrade"], "Wrong action"
-        assert (
-            final_user_tokenX_balance - initial_user_tokenX_balance == 450000.0
-        ), "Wrong user balance"
+        # assert (
+        #     final_user_tokenX_balance - initial_user_tokenX_balance == 450000.0
+        # ), "Wrong user balance"
 
         self.verify_option_states(
-            3,
+            next_id,
             self.user_1,
             396e8,
             2384617,  # self.generic_pool.availableBalance() * 5 // 100
@@ -1199,18 +1171,15 @@ class BinaryOptionTesting(object):
             1550000.0,
             357692.0,
             final_pool_tokenX_balance - initial_pool_tokenX_balance,
-            4,
             txn,
         )
 
     def verify_call_creation_with_less_liquidity(self):
 
-        self.tokenX.approve(self.generic_pool.address,
-                            100e6, {"from": self.owner})
+        self.tokenX.approve(self.generic_pool.address, 100e6, {"from": self.owner})
         self.generic_pool.provide(10e6, 0, {"from": self.owner})
         self.tokenX.transfer(self.user_1, self.total_fee, {"from": self.owner})
-        self.tokenX.approve(self.router.address, self.total_fee, {
-                            "from": self.user_1})
+        self.tokenX.approve(self.router.address, self.total_fee, {"from": self.user_1})
         params = (
             self.total_fee,
             self.period,
@@ -1236,8 +1205,7 @@ class BinaryOptionTesting(object):
             self.tokenX_options.getMaxUtilization(),
         )
         initial_user_tokenX_balance = self.tokenX.balanceOf(self.user_1)
-        initial_pool_tokenX_balance = self.tokenX.balanceOf(
-            self.generic_pool.address)
+        initial_pool_tokenX_balance = self.tokenX.balanceOf(self.generic_pool.address)
         queued_trade = self.router.queuedTrades(4)
         open_params_1 = [
             queued_trade[10],
@@ -1257,8 +1225,7 @@ class BinaryOptionTesting(object):
             {"from": self.bot},
         )
         final_user_tokenX_balance = self.tokenX.balanceOf(self.user_1)
-        final_pool_tokenX_balance = self.tokenX.balanceOf(
-            self.generic_pool.address)
+        final_pool_tokenX_balance = self.tokenX.balanceOf(self.generic_pool.address)
         assert txn.events["OpenTrade"], "Wrong action"
         assert (
             final_user_tokenX_balance - initial_user_tokenX_balance == 350000.0
@@ -1273,20 +1240,16 @@ class BinaryOptionTesting(object):
             650000.0,
             150000.0,
             final_pool_tokenX_balance - initial_pool_tokenX_balance,
-            5,
             txn,
         )
 
     def verify_creation_with_high_trade_amount(self):
         self.chain.snapshot()
-        self.options_config.setAssetUtilizationLimit(
-            50e2, {"from": self.owner})
+        self.options_config.setAssetUtilizationLimit(50e2, {"from": self.owner})
 
-        self.tokenX.approve(self.generic_pool.address,
-                            100e6, {"from": self.owner})
+        self.tokenX.approve(self.generic_pool.address, 100e6, {"from": self.owner})
         self.generic_pool.provide(100e6, 0, {"from": self.owner})
-        self.tokenX.transfer(self.user_1, self.total_fee *
-                             7, {"from": self.owner})
+        self.tokenX.transfer(self.user_1, self.total_fee * 7, {"from": self.owner})
         self.tokenX.approve(
             self.router.address, self.total_fee * 7, {"from": self.user_1}
         )
@@ -1313,8 +1276,7 @@ class BinaryOptionTesting(object):
             self.tokenX_options.getMaxUtilization() / 1e6,
         )
         initial_user_tokenX_balance = self.tokenX.balanceOf(self.user_1)
-        initial_pool_tokenX_balance = self.tokenX.balanceOf(
-            self.generic_pool.address)
+        initial_pool_tokenX_balance = self.tokenX.balanceOf(self.generic_pool.address)
         queued_trade = self.router.queuedTrades(6)
         open_params_1 = [
             queued_trade[10],
@@ -1334,8 +1296,7 @@ class BinaryOptionTesting(object):
             {"from": self.bot},
         )
         final_user_tokenX_balance = self.tokenX.balanceOf(self.user_1)
-        final_pool_tokenX_balance = self.tokenX.balanceOf(
-            self.generic_pool.address)
+        final_pool_tokenX_balance = self.tokenX.balanceOf(self.generic_pool.address)
         assert txn.events["OpenTrade"], "Wrong action"
         assert (
             final_user_tokenX_balance - initial_user_tokenX_balance == 1820001
@@ -1350,15 +1311,13 @@ class BinaryOptionTesting(object):
             5179999,
             1195384.0,
             final_pool_tokenX_balance - initial_pool_tokenX_balance,
-            6,
             txn,
         )
         self.chain.revert()
 
     def verify_creation_with_high_utilization(self):
         self.tokenX.transfer(self.user_1, self.total_fee, {"from": self.owner})
-        self.tokenX.approve(self.router.address, self.total_fee, {
-                            "from": self.user_1})
+        self.tokenX.approve(self.router.address, self.total_fee, {"from": self.user_1})
         params = (
             self.total_fee,
             self.period,
@@ -1403,8 +1362,7 @@ class BinaryOptionTesting(object):
         params = []
         for option in options:
             option_data = self.tokenX_options.options(option[0])
-            close_params = (
-                option_data[5], self.tokenX_options.address, option[1])
+            close_params = (option_data[5], self.tokenX_options.address, option[1])
             params.append(
                 (
                     option[0],
@@ -1425,14 +1383,12 @@ class BinaryOptionTesting(object):
 
         # ITM for call
         initial_user_tokenX_balance = self.tokenX.balanceOf(self.user_1)
-        initial_pool_tokenX_balance = self.tokenX.balanceOf(
-            self.generic_pool.address)
+        initial_pool_tokenX_balance = self.tokenX.balanceOf(self.generic_pool.address)
         initial_locked_amount = self.tokenX_options.totalLockedAmount()
 
         txn = self.unlock_options([(0, 500e8)])
         final_user_tokenX_balance = self.tokenX.balanceOf(self.user_1)
-        final_pool_tokenX_balance = self.tokenX.balanceOf(
-            self.generic_pool.address)
+        final_pool_tokenX_balance = self.tokenX.balanceOf(self.generic_pool.address)
         final_locked_amount = self.tokenX_options.totalLockedAmount()
 
         assert txn.events["Loss"] and txn.events["Exercise"], "Option didnot exercise"
@@ -1447,13 +1403,11 @@ class BinaryOptionTesting(object):
 
         # ITM for put
         initial_user_tokenX_balance = self.tokenX.balanceOf(self.user_1)
-        initial_pool_tokenX_balance = self.tokenX.balanceOf(
-            self.generic_pool.address)
+        initial_pool_tokenX_balance = self.tokenX.balanceOf(self.generic_pool.address)
         txn = self.unlock_options([(3, 300e8)])
 
         final_user_tokenX_balance = self.tokenX.balanceOf(self.user_1)
-        final_pool_tokenX_balance = self.tokenX.balanceOf(
-            self.generic_pool.address)
+        final_pool_tokenX_balance = self.tokenX.balanceOf(self.generic_pool.address)
 
         assert txn.events["Loss"] and txn.events["Exercise"], "Option didnot exercise"
         assert (
@@ -1479,13 +1433,11 @@ class BinaryOptionTesting(object):
 
         # OTM for Call
         initial_user_tokenX_balance = self.tokenX.balanceOf(self.user_1)
-        initial_pool_tokenX_balance = self.tokenX.balanceOf(
-            self.generic_pool.address)
+        initial_pool_tokenX_balance = self.tokenX.balanceOf(self.generic_pool.address)
         txn = self.unlock_options([(1, 390e8)])
 
         final_user_tokenX_balance = self.tokenX.balanceOf(self.user_1)
-        final_pool_tokenX_balance = self.tokenX.balanceOf(
-            self.generic_pool.address)
+        final_pool_tokenX_balance = self.tokenX.balanceOf(self.generic_pool.address)
 
         assert txn.events["Profit"] and txn.events["Expire"], "Option didnot expire"
 
@@ -1507,13 +1459,11 @@ class BinaryOptionTesting(object):
 
         # OTM for Put
         initial_user_tokenX_balance = self.tokenX.balanceOf(self.user_1)
-        initial_pool_tokenX_balance = self.tokenX.balanceOf(
-            self.generic_pool.address)
+        initial_pool_tokenX_balance = self.tokenX.balanceOf(self.generic_pool.address)
         txn = self.unlock_options([(3, 490e8)])
 
         final_user_tokenX_balance = self.tokenX.balanceOf(self.user_1)
-        final_pool_tokenX_balance = self.tokenX.balanceOf(
-            self.generic_pool.address)
+        final_pool_tokenX_balance = self.tokenX.balanceOf(self.generic_pool.address)
 
         assert txn.events["Profit"] and txn.events["Expire"], "Option didnot expire"
 
@@ -1561,15 +1511,12 @@ class BinaryOptionTesting(object):
 
     def verify_asset_utilization_limit(self):
         self.chain.snapshot()
-        self.tokenX.approve(self.generic_pool.address,
-                            100e6, {"from": self.owner})
+        self.tokenX.approve(self.generic_pool.address, 100e6, {"from": self.owner})
         self.generic_pool.provide(60e6, 0, {"from": self.owner})
 
         # Set utilization limit for the asset A and asset B as 10%
-        self.options_config.setAssetUtilizationLimit(
-            10e2, {"from": self.owner})
-        self.options_config_2.setAssetUtilizationLimit(
-            10e2, {"from": self.owner})
+        self.options_config.setAssetUtilizationLimit(10e2, {"from": self.owner})
+        self.options_config_2.setAssetUtilizationLimit(10e2, {"from": self.owner})
         print(
             "pool",
             self.tokenX_options.totalLockedAmount() / 1e6,
@@ -1579,8 +1526,7 @@ class BinaryOptionTesting(object):
         print(self.tokenX_options.getMaxUtilization())
         fee = 1e6
         self.tokenX.transfer(self.user_1, fee * 20, {"from": self.owner})
-        self.tokenX.approve(self.router.address, fee *
-                            20, {"from": self.user_1})
+        self.tokenX.approve(self.router.address, fee * 20, {"from": self.user_1})
         next_id = self.router.nextQueueId()
         next_option_id = self.tokenX_options.nextTokenId()
         params = (
@@ -1770,8 +1716,7 @@ class BinaryOptionTesting(object):
 
     def verify_pausing(self):
         self.tokenX.transfer(self.user_1, self.total_fee, {"from": self.owner})
-        self.tokenX.approve(self.router.address, self.total_fee, {
-                            "from": self.user_1})
+        self.tokenX.approve(self.router.address, self.total_fee, {"from": self.user_1})
         params = (
             self.total_fee,
             self.period,
@@ -1798,8 +1743,7 @@ class BinaryOptionTesting(object):
 
     def verify_overall_utilization_limit(self):
         self.chain.snapshot()
-        self.tokenX.approve(self.generic_pool.address,
-                            100e6, {"from": self.owner})
+        self.tokenX.approve(self.generic_pool.address, 100e6, {"from": self.owner})
         self.generic_pool.provide(60e6, 0, {"from": self.owner})
         self.tokenX.transfer(self.user_1, 100e6, {"from": self.owner})
         self.tokenX.approve(self.router.address, 100e6, {"from": self.user_1})
@@ -1891,8 +1835,7 @@ class BinaryOptionTesting(object):
 
         self.chain.sleep(10 * 60 + 1)
         self.generic_pool.withdraw(
-            self.generic_pool.availableBalance(
-            ) * 95 // 100, {"from": self.owner}
+            self.generic_pool.availableBalance() * 95 // 100, {"from": self.owner}
         )
 
         self.verify_creation_with_high_utilization()
@@ -1962,6 +1905,6 @@ def test_BinaryOptions(contracts, accounts, chain):
         publisher,
         keeper_contract,
         ibfr_contract,
-        settlement_fee_disbursal
+        settlement_fee_disbursal,
     )
     option.complete_flow_test()

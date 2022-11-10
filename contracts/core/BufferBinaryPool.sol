@@ -2,7 +2,7 @@
 
 pragma solidity 0.8.4;
 
-import "../Interfaces/InterfacesBinary.sol";
+import "../interfaces/Interfaces.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 

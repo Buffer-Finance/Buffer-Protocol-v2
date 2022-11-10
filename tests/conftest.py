@@ -29,7 +29,7 @@ def contracts(
     BFR,
     BufferBinaryPool,
     BufferBinaryOptions,
-    OptionConfigBinaryV2,
+    OptionsConfig,
     OptionRouter,
     SettlementFeeDisbursal,
     TraderNFT,
@@ -67,7 +67,7 @@ def contracts(
     )
 
     print("############### Binary ATM Options 1 #################")
-    binary_options_config_atm = OptionConfigBinaryV2.deploy(
+    binary_options_config_atm = OptionsConfig.deploy(
         binary_pool_atm.address,
         {"from": accounts[0]},
     )
@@ -127,7 +127,7 @@ def contracts(
     binary_european_options_atm.initialize(15e2, 15e2, {"from": accounts[0]})
 
     print("############### Binary ATM Options 2 #################")
-    binary_options_config_atm_2 = OptionConfigBinaryV2.deploy(
+    binary_options_config_atm_2 = OptionsConfig.deploy(
         binary_pool_atm.address,
         {"from": accounts[0]},
     )
@@ -186,7 +186,7 @@ def contracts(
     binary_european_options_atm_2.initialize(15e2, 15e2, {"from": accounts[0]})
 
     print("############### Binary ATM Options 3 #################")
-    binary_options_config_atm_3 = OptionConfigBinaryV2.deploy(
+    binary_options_config_atm_3 = OptionsConfig.deploy(
         binary_pool_atm.address,
         {"from": accounts[0]},
     )
@@ -251,7 +251,7 @@ def contracts(
         ibfr_contract.address, {"from": accounts[0]}
     )
 
-    bfr_binary_options_config_atm = OptionConfigBinaryV2.deploy(
+    bfr_binary_options_config_atm = OptionsConfig.deploy(
         bfr_pool_atm.address,
         {"from": accounts[0]},
     )

@@ -17,9 +17,9 @@ contract TraderNFT is ERC721, ERC721URIStorage, Ownable, ReentrancyGuard {
     Counters.Counter public tokenIdCounter;
     Counters.Counter public claimTokenIdCounter;
 
-    mapping(uint256 => uint256) public tokenTierMappings;
+    mapping(uint8 => uint256) public tokenTierMappings;
     mapping(uint256 => bool) public tokenMintMappings;
-    mapping(address => uint256) public userToTier;
+    mapping(address => uint8) public userToTier;
 
     event UpdateNftBasePrice(uint256 nftBasePrice);
     event UpdateMaxNFTMintLimits(uint256 maxNFTMintLimit);

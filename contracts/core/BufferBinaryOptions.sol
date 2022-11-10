@@ -2,14 +2,10 @@
 
 pragma solidity 0.8.4;
 
-import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
-import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
-import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
-import "./OptionConfigBinaryV2.sol";
-import "../Interfaces/InterfacesBinary.sol";
+import "../interfaces/Interfaces.sol";
 
 /**
  * @author Heisenberg
@@ -19,7 +15,6 @@ import "../Interfaces/InterfacesBinary.sol";
 
 contract BufferBinaryOptions is
     IBufferBinaryOptions,
-    Ownable,
     ReentrancyGuard,
     ERC721,
     AccessControl
@@ -31,15 +26,15 @@ contract BufferBinaryOptions is
     uint256 public baseSettlementFeePercentageForBelow; // Factor of 1e2
     uint256 public stepSize = 250; // Factor of 1e2
 
-    ILiquidityPool public pool;
-    OptionConfigBinaryV2 public config;
+    ILiquidityPool public override pool;
+    IOptionsConfig public override config;
     IReferralStorage public referral;
     AssetCategory public assetCategory;
     ERC20 public override tokenX;
 
     mapping(uint256 => Option) public override options;
     mapping(address => uint256[]) public userOptionIds;
-    mapping(uint256 => uint256) public NFTTierToStep;
+    mapping(uint8 => uint8) public nftTierToStep;
 
     bytes32 public constant ROUTER_ROLE = keccak256("ROUTER_ROLE");
     bytes32 public constant BOT_ROLE = keccak256("BOT_ROLE");
@@ -51,7 +46,7 @@ contract BufferBinaryOptions is
     constructor(
         ERC20 _tokenX,
         ILiquidityPool _pool,
-        OptionConfigBinaryV2 _config,
+        IOptionsConfig _config,
         IReferralStorage _referral,
         AssetCategory _category
     ) ERC721("Buffer", "BFR") {
@@ -68,18 +63,18 @@ contract BufferBinaryOptions is
      */
     function initialize(
         uint256 _baseSettlementFeePercentageForAbove,
-        uint256 _baseSettlementFeePercentageForBelow
-    ) external onlyOwner {
+        uint256 _baseSettlementFeePercentageForBelow,
+        uint256 _nftTierToStep
+    ) external onlyRole(DEFAULT_ADMIN_ROLE) {
         require(10e2 <= _baseSettlementFeePercentageForAbove, "O27");
-        require(_baseSettlementFeePercentageForAbove <= 25e2, "O28");
+        require(_baseSettlementFeePercentageForAbove <= 50e2, "O28");
         require(10e2 <= _baseSettlementFeePercentageForBelow, "O27");
-        require(_baseSettlementFeePercentageForBelow <= 25e2, "O28");
+        require(_baseSettlementFeePercentageForBelow <= 50e2, "O28");
         baseSettlementFeePercentageForAbove = _baseSettlementFeePercentageForAbove; // Percent with a factor of 1e2
-        baseSettlementFeePercentageForBelow = _baseSettlementFeePercentageForBelow; // Percent with a factor of 1e2
-        NFTTierToStep[0] = 0;
-        NFTTierToStep[1] = 1;
-        NFTTierToStep[2] = 2;
-        NFTTierToStep[3] = 3;
+
+        for (uint8 i; i < 4; i++) {
+            nftTierToStep[i] = _nftTierToStep[i];
+        }
     }
 
     /**
@@ -99,7 +94,7 @@ contract BufferBinaryOptions is
     /**
      * @notice Pauses/Unpauses the option creation
      */
-    function toggleCreation() public onlyOwner {
+    function toggleCreation() public onlyRole(DEFAULT_ADMIN_ROLE) {
         isPaused = !isPaused;
         emit Pause(isPaused);
     }
@@ -186,13 +181,6 @@ contract BufferBinaryOptions is
     /************************************************
      *  READ ONLY FUNCTIONS
      ***********************************************/
-
-    /**
-     * @notice Returns total options bought by a user
-     */
-    function userOptionCount(address user) public view returns (uint256) {
-        return userOptionIds[user].length;
-    }
 
     /**
      * @notice Returns decimals of the pool token
@@ -470,10 +458,10 @@ contract BufferBinaryOptions is
         string calldata referralCode,
         bool isAbove
     ) internal returns (uint256 referrerFee) {
-        if (referrer != user && referrer != owner() && referrer != address(0)) {
+        if (referrer != user && referrer != address(0)) {
             referrerFee = ((totalFee *
-                referral.ReferrerTierToDiscount(
-                    referral.ReferrerToTier(referrer)
+                referral.referrerTierToDiscount(
+                    referral.referrerToTier(referrer)
                 )) / 1e4);
             if (referrerFee > 0) {
                 tokenX.transfer(referrer, referrerFee);
@@ -510,16 +498,16 @@ contract BufferBinaryOptions is
     function _getSettlementFeeDiscount(address referrer, address user)
         internal
         view
-        returns (bool isReferralValid, uint256 maxStep)
+        returns (bool isReferralValid, uint8 maxStep)
     {
         if (config.traderNFTContract() != address(0)) {
-            maxStep = NFTTierToStep[
+            maxStep = nftTierToStep[
                 ITraderNFT(config.traderNFTContract()).userToTier(user)
             ];
         }
-        if (referrer != user && referrer != owner() && referrer != address(0)) {
-            uint256 step = referral.ReferrerTierToStep(
-                referral.ReferrerToTier(referrer)
+        if (referrer != user && referrer != address(0)) {
+            uint8 step = referral.referrerTierToStep(
+                referral.referrerTiers(referrer)
             );
             if (step > maxStep) {
                 maxStep = step;

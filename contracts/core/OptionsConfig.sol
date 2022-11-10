@@ -10,22 +10,22 @@ import "@openzeppelin/contracts/access/Ownable.sol";
  * @title Buffer Options Config
  * @notice Maintains all the configurations for the options contracts
  */
-contract OptionConfigBinaryV2 is Ownable, IOptionsConfig {
+contract OptionsConfig is Ownable, IOptionsConfig {
     BufferBinaryPool public pool;
 
-    address public settlementFeeDisbursalContract;
-    address public traderNFTContract;
+    address public override settlementFeeDisbursalContract;
+    address public override traderNFTContract;
     uint256 public treasuryPercentage = 3;
     uint256 public blpStakingPercentage = 65;
     uint256 public bfrStakingPercentage = 27;
     uint256 public insuranceFundPercentage = 5;
-    uint256 public assetUtilizationLimit = 10e2;
-    uint256 public overallPoolUtilizationLimit = 64e2;
-    uint256 public maxPeriod = 24 hours;
-    uint256 public optionFeePerTxnLimitPercent = 5e2;
-    uint256 public minFee = 1;
+    uint256 public override assetUtilizationLimit = 10e2;
+    uint256 public override overallPoolUtilizationLimit = 64e2;
+    uint256 public override maxPeriod = 24 hours;
+    uint256 public override optionFeePerTxnLimitPercent = 5e2;
+    uint256 public override minFee = 1;
 
-    mapping(uint256 => Window) public marketTimes;
+    mapping(uint256 => Window) public override marketTimes;
 
     constructor(BufferBinaryPool _pool) {
         pool = _pool;
