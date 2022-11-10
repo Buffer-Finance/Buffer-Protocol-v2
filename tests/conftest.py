@@ -67,11 +67,6 @@ def contracts(
         1,
         {"from": accounts[0]},
     )
-    referral_contract.grantRole(
-        OPTION_ISSUER_ROLE,
-        binary_european_options_atm.address,
-        {"from": accounts[0]},
-    )
 
     binary_options_config_atm.setSettlementFeeDisbursalContract(
         sfd,
@@ -116,11 +111,6 @@ def contracts(
         1,
         {"from": accounts[0]},
     )
-    referral_contract.grantRole(
-        OPTION_ISSUER_ROLE,
-        binary_european_options_atm_2.address,
-        {"from": accounts[0]},
-    )
 
     binary_options_config_atm_2.setSettlementFeeDisbursalContract(
         sfd,
@@ -162,11 +152,6 @@ def contracts(
         binary_options_config_atm_3.address,
         referral_contract.address,
         0,
-        {"from": accounts[0]},
-    )
-    referral_contract.grantRole(
-        OPTION_ISSUER_ROLE,
-        binary_european_options_atm_3.address,
         {"from": accounts[0]},
     )
 
@@ -214,11 +199,6 @@ def contracts(
         bfr_binary_options_config_atm.address,
         referral_contract.address,
         1,
-        {"from": accounts[0]},
-    )
-    referral_contract.grantRole(
-        OPTION_ISSUER_ROLE,
-        bfr_binary_european_options_atm.address,
         {"from": accounts[0]},
     )
 

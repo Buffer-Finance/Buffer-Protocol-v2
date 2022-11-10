@@ -309,19 +309,6 @@ interface IReferralStorage {
 
     function referrerTier(address referrer) external view returns (uint8 tier);
 
-    function setUserReferralData(
-        address user,
-        uint256 totalFee,
-        uint256 rebate,
-        string memory referralCode
-    ) external;
-
-    function setReferrerReferralData(
-        address referrer,
-        uint256 totalFee,
-        uint256 discount
-    ) external;
-
     struct ReferrerData {
         uint256 tradeVolume;
         uint256 rebate;
@@ -342,4 +329,9 @@ interface IReferralStorage {
         uint256 totalRebate; // e.g. 2400 for 24%
         uint256 discountShare; // 5000 for 50%/50%, 7000 for 30% rebates/70% discount
     }
+
+    event UpdateTraderReferralCode(address account, string code);
+    event UpdateReferrerTier(address referrer, uint8 tierId);
+    event RegisterCode(address account, string code);
+    event SetCodeOwner(address account, address newAccount, string code);
 }

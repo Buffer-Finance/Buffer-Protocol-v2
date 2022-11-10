@@ -678,11 +678,7 @@ class BinaryOptionTesting(object):
             self.referral_code,
             0,
         )
-        self.referral_contract.setReferrerTier(self.user_1, 1, {"from": self.owner})
-        self.referral_contract.registerCode(
-            self.referral_code,
-            {"from": self.user_1},
-        )
+
         self.router.initiateTrade(
             *params,
             {"from": self.user_1},
@@ -750,11 +746,7 @@ class BinaryOptionTesting(object):
             self.referral_code,
             0,
         )
-        # self.referral_contract.setReferrerTier(self.owner, 1, {"from": self.owner})
-        # self.referral_contract.registerCode(
-        #     self.referral_code,
-        #     {"from": self.owner},
-        # )
+
         self.router.initiateTrade(
             *params,
             {"from": self.user_1},
@@ -1846,14 +1838,12 @@ class BinaryOptionTesting(object):
                 False,
                 {"from": self.accounts[0]},
             )
-        self.verify_forex_option_trading_window()
 
+        self.verify_forex_option_trading_window()
         self.verify_creation_with_referral_and_nft()
         self.verify_creation_with_referral_and_no_nft()
-
         self.verify_creation_with_no_referral_and_no_nft()
         self.verify_creation_with_no_referral_and_nft()
-
         self.verify_referrals()
 
         self.chain.sleep(10 * 60 + 1)
@@ -1882,7 +1872,6 @@ class BinaryOptionTesting(object):
         self.chain.sleep(self.period + 1)
         self.verify_unlocking_ITM()
         self.verify_unlocking_OTM_and_ATM()
-
         self.verify_unlocking_multiple_options_at_once()
         self.verify_asset_utilization_limit()
         self.verify_overall_utilization_limit()
