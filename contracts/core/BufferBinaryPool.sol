@@ -19,9 +19,9 @@ contract BufferBinaryPool is
     ILiquidityPool
 {
     ERC20 public tokenX;
-    uint256 public constant ACCURACY = 1e3;
-    uint256 public constant INITIAL_RATE = 1;
-    uint256 public lockupPeriod = 10 minutes;
+    uint16 public constant ACCURACY = 1e3;
+    uint32 public constant INITIAL_RATE = 1;
+    uint32 public lockupPeriod = 10 minutes;
     uint256 public lockedAmount;
     uint256 public lockedPremium;
     uint256 public maxLiquidity;

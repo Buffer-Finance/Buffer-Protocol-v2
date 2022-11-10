@@ -250,7 +250,7 @@ contract BufferBinaryOptions is
                 uint256 startMinute,
                 uint256 endHour,
                 uint256 endMinute
-            ) = config.marketTimes(uint16(currentDay));
+            ) = config.marketTimes(uint8(currentDay));
 
             if (
                 (currentHour > startHour ||

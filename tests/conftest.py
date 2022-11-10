@@ -31,14 +31,13 @@ def contracts(
     BufferBinaryOptions,
     OptionsConfig,
     BufferRouter,
-    SettlementFeeDisbursal,
     TraderNFT,
     ReferralStorage,
 ):
 
     publisher = accounts.add()
     ibfr_contract = BFR.deploy({"from": accounts[0]})
-
+    sfd = accounts.add()
     tokenX = USDC.deploy({"from": accounts[0]})
 
     binary_pool_atm = BufferBinaryPool.deploy(tokenX.address, {"from": accounts[0]})
@@ -73,25 +72,12 @@ def contracts(
         binary_european_options_atm.address,
         {"from": accounts[0]},
     )
-    settlement_fee_disbursal = SettlementFeeDisbursal.deploy(
-        tokenX.address,
-        binary_options_config_atm.address,
-        binary_european_options_atm.address,
-        accounts[6],
-        accounts[7],
-        accounts[8],
-        accounts[9],
-        {"from": accounts[0]},
-    )
 
     binary_options_config_atm.setSettlementFeeDisbursalContract(
-        settlement_fee_disbursal.address,
+        sfd,
         {"from": accounts[0]},
     )
 
-    binary_european_options_atm.approveSFDContractToTransferTokenX(
-        {"from": accounts[0]},
-    )
     binary_european_options_atm.approvePoolToTransferTokenX(
         {"from": accounts[0]},
     )
@@ -135,25 +121,12 @@ def contracts(
         binary_european_options_atm_2.address,
         {"from": accounts[0]},
     )
-    settlement_fee_disbursal_2 = SettlementFeeDisbursal.deploy(
-        tokenX.address,
-        binary_options_config_atm_2.address,
-        binary_european_options_atm_2.address,
-        accounts[6],
-        accounts[7],
-        accounts[8],
-        accounts[9],
-        {"from": accounts[0]},
-    )
 
     binary_options_config_atm_2.setSettlementFeeDisbursalContract(
-        settlement_fee_disbursal_2.address,
+        sfd,
         {"from": accounts[0]},
     )
 
-    binary_european_options_atm_2.approveSFDContractToTransferTokenX(
-        {"from": accounts[0]},
-    )
     binary_european_options_atm_2.approvePoolToTransferTokenX(
         {"from": accounts[0]},
     )
@@ -196,25 +169,12 @@ def contracts(
         binary_european_options_atm_3.address,
         {"from": accounts[0]},
     )
-    settlement_fee_disbursal_3 = SettlementFeeDisbursal.deploy(
-        tokenX.address,
-        binary_options_config_atm_3.address,
-        binary_european_options_atm_3.address,
-        accounts[6],
-        accounts[7],
-        accounts[8],
-        accounts[9],
-        {"from": accounts[0]},
-    )
 
     binary_options_config_atm_3.setSettlementFeeDisbursalContract(
-        settlement_fee_disbursal_3.address,
+        sfd,
         {"from": accounts[0]},
     )
 
-    binary_european_options_atm_3.approveSFDContractToTransferTokenX(
-        {"from": accounts[0]},
-    )
     binary_european_options_atm_3.approvePoolToTransferTokenX(
         {"from": accounts[0]},
     )
@@ -261,25 +221,12 @@ def contracts(
         bfr_binary_european_options_atm.address,
         {"from": accounts[0]},
     )
-    bfr_settlement_fee_disbursal = SettlementFeeDisbursal.deploy(
-        ibfr_contract.address,
-        bfr_binary_options_config_atm.address,
-        bfr_binary_european_options_atm.address,
-        accounts[6],
-        accounts[7],
-        accounts[8],
-        accounts[9],
-        {"from": accounts[0]},
-    )
 
     bfr_binary_options_config_atm.setSettlementFeeDisbursalContract(
-        bfr_settlement_fee_disbursal.address,
+        sfd,
         {"from": accounts[0]},
     )
 
-    bfr_binary_european_options_atm.approveSFDContractToTransferTokenX(
-        {"from": accounts[0]},
-    )
     bfr_binary_european_options_atm.approvePoolToTransferTokenX(
         {"from": accounts[0]},
     )
@@ -323,12 +270,10 @@ def contracts(
         "binary_european_options_atm_3": binary_european_options_atm_3,
         "router": router,
         "trader_nft_contract": trader_nft,
-        "settlement_fee_disbursal": settlement_fee_disbursal,
         "ibfr_contract": ibfr_contract,
         "bfr_pool_atm": bfr_pool_atm,
         "bfr_binary_options_config_atm": bfr_binary_options_config_atm,
         "bfr_binary_european_options_atm": bfr_binary_european_options_atm,
-        "bfr_settlement_fee_disbursal": bfr_settlement_fee_disbursal,
         "publisher": publisher,
-        "settlement_fee_disbursal": settlement_fee_disbursal,
+        "settlement_fee_disbursal": sfd,
     }

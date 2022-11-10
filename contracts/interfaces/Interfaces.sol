@@ -231,10 +231,10 @@ interface ILiquidityPool {
 
 interface IOptionsConfig {
     struct Window {
-        uint16 startHour;
-        uint16 startMinute;
-        uint16 endHour;
-        uint16 endMinute;
+        uint8 startHour;
+        uint8 startMinute;
+        uint8 endHour;
+        uint8 endMinute;
     }
 
     event UpdateMarketTime();
@@ -250,14 +250,14 @@ interface IOptionsConfig {
 
     function settlementFeeDisbursalContract() external view returns (address);
 
-    function marketTimes(uint16)
+    function marketTimes(uint8)
         external
         view
         returns (
-            uint16,
-            uint16,
-            uint16,
-            uint16
+            uint8,
+            uint8,
+            uint8,
+            uint8
         );
 
     function assetUtilizationLimit() external view returns (uint16);
@@ -269,21 +269,6 @@ interface IOptionsConfig {
     function minFee() external view returns (uint16);
 
     function optionFeePerTxnLimitPercent() external view returns (uint16);
-}
-
-interface ISettlementFeeDisbursal {
-    event DistributeSettlementFee(
-        uint256 treasuryFee,
-        uint256 blpStakingFee,
-        uint256 bfrStakingFee,
-        uint256 insuranceFee
-    );
-    event UpdateStakingFeePercentage(
-        uint16 treasuryPercentage,
-        uint16 blpStakingPercentage,
-        uint16 bfrStakingPercentage,
-        uint16 insuranceFundPercentage
-    );
 }
 
 interface ITraderNFT {

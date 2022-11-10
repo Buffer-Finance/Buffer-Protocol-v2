@@ -13,7 +13,7 @@ import "../interfaces/Interfaces.sol";
  */
 contract BufferRouter is AccessControl, IBufferRouter {
     bytes32 public constant BOT_ROLE = keccak256("BOT_ROLE");
-    uint256 MAX_WAIT_TIME = 1 minutes;
+    uint16 MAX_WAIT_TIME = 1 minutes;
     uint256 public nextQueueId = 0;
     address public publisher;
     uint256 public nextQueueIdToProcess = 0;
@@ -133,7 +133,7 @@ contract BufferRouter is AccessControl, IBufferRouter {
      */
     function resolveQueuedTrades(OpenTradeParams[] calldata params) external {
         _validateKeeper();
-        for (uint256 index = 0; index < params.length; index++) {
+        for (uint32 index = 0; index < params.length; index++) {
             OpenTradeParams memory currentParams = params[index];
             QueuedTrade memory queuedTrade = queuedTrades[
                 currentParams.queueId
@@ -188,14 +188,15 @@ contract BufferRouter is AccessControl, IBufferRouter {
     function unlockOptions(CloseTradeParams[] calldata optionData) external {
         _validateKeeper();
 
-        uint256 arrayLength = optionData.length;
-        for (uint256 i = 0; i < arrayLength; i++) {
+        uint32 arrayLength = uint32(optionData.length);
+        for (uint32 i = 0; i < arrayLength; i++) {
             CloseTradeParams memory params = optionData[i];
             IBufferBinaryOptions optionsContract = IBufferBinaryOptions(
                 params.asset
             );
-            (, , uint256 amount, , , uint256 expiration, , , ) = optionsContract
-                .options(params.optionId);
+            (, , , , , uint256 expiration, , , ) = optionsContract.options(
+                params.optionId
+            );
 
             bool isSignerVerifed = _validateSigner(
                 params.expiryTimestamp,

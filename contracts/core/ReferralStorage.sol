@@ -27,18 +27,11 @@ contract ReferralStorage is IReferralStorage, AccessControl {
 
     function configure(
         uint8[3] calldata _referrerTierStep,
-        uint32[3] calldata _referrerTierDiscount
+        uint32[3] calldata _referrerTierDiscount // Factor of 1e5
     ) external {
-        // referrerTierStep[0] = 1;
-        // referrerTierStep[1] = 2;
-        // referrerTierStep[2] = 3;
-
         for (uint8 i = 0; i < 3; i++) {
             referrerTierStep[i] = _referrerTierStep[i];
         }
-        // referrerTierDiscount[0] = 25000; // 0.25%
-        // referrerTierDiscount[1] = 50000; // 0.50%
-        // referrerTierDiscount[2] = 75000; // 0.75%
 
         for (uint8 i = 0; i < 3; i++) {
             referrerTierDiscount[i] = _referrerTierDiscount[i];

@@ -99,11 +99,6 @@ class BinaryOptionTesting(object):
         self.router.setContractRegistry(self.tokenX_options.address, True)
         self.router.setInPrivateKeeperMode()
 
-        assert self.options_config.treasuryPercentage() == 3e2
-        assert self.options_config.blpStakingPercentage() == 65e2
-        assert self.options_config.bfrStakingPercentage() == 27e2
-        assert self.options_config.insuranceFundPercentage() == 5e2
-
     def verify_referrals(self):
         self.chain.snapshot()
 
@@ -152,24 +147,6 @@ class BinaryOptionTesting(object):
         self.options_config.setMaxPeriod(86400)
         assert self.options_config.maxPeriod() == 86400
 
-        # assetUtilizationLimit
-        with brownie.reverts("Wrong distribution"):
-            self.options_config.setStakingFeePercentages(10e2, 20e2, 20e2, 110e2)
-        with brownie.reverts():  # Wrong role
-            self.options_config.setStakingFeePercentages(
-                3e2, 65e2, 27e2, 5e2, {"from": self.user_1}
-            )
-        self.options_config.setStakingFeePercentages(
-            3e2,
-            65e2,
-            27e2,
-            5e2,
-        )
-        assert self.options_config.treasuryPercentage() == 3e2
-        assert self.options_config.blpStakingPercentage() == 65e2
-        assert self.options_config.bfrStakingPercentage() == 27e2
-        assert self.options_config.insuranceFundPercentage() == 5e2
-
         with brownie.reverts():  # Wrong role
             self.options_config.transferOwnership(self.user_2, {"from": self.user_1})
         with brownie.reverts():  # Wrong address
@@ -198,6 +175,7 @@ class BinaryOptionTesting(object):
         expected_total_fee,
         expected_settlement_fee,
         pool_balance_diff,
+        sfd_diff,
         txn,
     ):
         (
@@ -233,6 +211,7 @@ class BinaryOptionTesting(object):
 
         assert (
             txn.events["Create"]["settlementFee"] == expected_settlement_fee
+            and sfd_diff == expected_settlement_fee
         ), "Wrong settlementFee"
 
     def get_signature(self, timestamp, token, price, publisher=None):
@@ -627,6 +606,9 @@ class BinaryOptionTesting(object):
 
         initial_referrer_tokenX_balance = self.tokenX.balanceOf(self.referrer)
         initial_user_tokenX_balance = self.tokenX.balanceOf(self.user_5)
+        initial_sfd_tokenX_balance = self.tokenX.balanceOf(
+            self.settlement_fee_disbursal
+        )
         initial_pool_tokenX_balance = self.tokenX.balanceOf(self.generic_pool.address)
 
         queued_trade = self.router.queuedTrades(queue_id)
@@ -651,6 +633,7 @@ class BinaryOptionTesting(object):
 
         final_referrer_tokenX_balance = self.tokenX.balanceOf(self.referrer)
         final_user_tokenX_balance = self.tokenX.balanceOf(self.user_5)
+        final_sfd_tokenX_balance = self.tokenX.balanceOf(self.settlement_fee_disbursal)
         final_pool_tokenX_balance = self.tokenX.balanceOf(self.generic_pool.address)
 
         option_id = txn.events["Create"]["id"]
@@ -673,6 +656,7 @@ class BinaryOptionTesting(object):
             self.total_fee,
             197500,
             final_pool_tokenX_balance - initial_pool_tokenX_balance,
+            final_sfd_tokenX_balance - initial_sfd_tokenX_balance,
             txn,
         )
         self.chain.revert()
@@ -707,6 +691,9 @@ class BinaryOptionTesting(object):
         initial_user_tokenX_balance = self.tokenX.balanceOf(self.user_1)
         initial_pool_tokenX_balance = self.tokenX.balanceOf(self.generic_pool.address)
         initial_locked_amount = self.tokenX_options.totalLockedAmount()
+        initial_sfd_tokenX_balance = self.tokenX.balanceOf(
+            self.settlement_fee_disbursal
+        )
         queued_trade = self.router.queuedTrades(0)
         open_params_1 = [
             queued_trade[10],
@@ -727,6 +714,7 @@ class BinaryOptionTesting(object):
         )
         final_user_tokenX_balance = self.tokenX.balanceOf(self.user_1)
         final_pool_tokenX_balance = self.tokenX.balanceOf(self.generic_pool.address)
+        final_sfd_tokenX_balance = self.tokenX.balanceOf(self.settlement_fee_disbursal)
         final_locked_amount = self.tokenX_options.totalLockedAmount()
         assert txn.events["OpenTrade"], "Trade not opened"
         assert (
@@ -743,6 +731,7 @@ class BinaryOptionTesting(object):
             self.total_fee,
             230770,
             final_pool_tokenX_balance - initial_pool_tokenX_balance,
+            final_sfd_tokenX_balance - initial_sfd_tokenX_balance,
             txn,
         )
 
@@ -772,7 +761,9 @@ class BinaryOptionTesting(object):
         )
         initial_user_tokenX_balance = self.tokenX.balanceOf(self.user_1)
         initial_pool_tokenX_balance = self.tokenX.balanceOf(self.generic_pool.address)
-
+        initial_sfd_tokenX_balance = self.tokenX.balanceOf(
+            self.settlement_fee_disbursal
+        )
         queued_trade = self.router.queuedTrades(1)
         open_params_1 = [
             queued_trade[10],
@@ -793,6 +784,7 @@ class BinaryOptionTesting(object):
         )
         final_user_tokenX_balance = self.tokenX.balanceOf(self.user_1)
         final_pool_tokenX_balance = self.tokenX.balanceOf(self.generic_pool.address)
+        final_sfd_tokenX_balance = self.tokenX.balanceOf(self.settlement_fee_disbursal)
         assert txn.events["OpenTrade"], "Trade not opened"
         assert (
             final_user_tokenX_balance - initial_user_tokenX_balance == 0
@@ -807,6 +799,7 @@ class BinaryOptionTesting(object):
             self.total_fee,
             230770,
             final_pool_tokenX_balance - initial_pool_tokenX_balance,
+            final_sfd_tokenX_balance - initial_sfd_tokenX_balance,
             txn,
         )
         self.router.initiateTrade(
@@ -869,7 +862,9 @@ class BinaryOptionTesting(object):
         initial_user_tokenX_balance = self.tokenX.balanceOf(self.user_1)
         initial_pool_tokenX_balance = self.tokenX.balanceOf(self.generic_pool.address)
         initial_locked_amount = self.tokenX_options.totalLockedAmount()
-
+        initial_sfd_tokenX_balance = self.tokenX.balanceOf(
+            self.settlement_fee_disbursal
+        )
         queued_trade = self.router.queuedTrades(3)
         open_params_1 = [
             queued_trade[10],
@@ -891,6 +886,7 @@ class BinaryOptionTesting(object):
         final_user_tokenX_balance = self.tokenX.balanceOf(self.user_1)
         final_pool_tokenX_balance = self.tokenX.balanceOf(self.generic_pool.address)
         final_locked_amount = self.tokenX_options.totalLockedAmount()
+        final_sfd_tokenX_balance = self.tokenX.balanceOf(self.settlement_fee_disbursal)
         assert txn.events["OpenTrade"], "Trade not opened"
         assert (
             final_user_tokenX_balance - initial_user_tokenX_balance == 0
@@ -906,6 +902,7 @@ class BinaryOptionTesting(object):
             self.total_fee,
             200000,
             final_pool_tokenX_balance - initial_pool_tokenX_balance,
+            final_sfd_tokenX_balance - initial_sfd_tokenX_balance,
             txn,
         )
 
@@ -960,7 +957,9 @@ class BinaryOptionTesting(object):
         initial_pool_tokenX_balance = self.tokenX.balanceOf(self.generic_pool.address)
         initial_locked_amount = self.tokenX_options.totalLockedAmount()
         initial_referrer_tokenX_balance = self.tokenX.balanceOf(self.referrer)
-
+        initial_sfd_tokenX_balance = self.tokenX.balanceOf(
+            self.settlement_fee_disbursal
+        )
         queued_trade = self.router.queuedTrades(0)
         open_params_1 = [
             queued_trade[10],
@@ -983,6 +982,7 @@ class BinaryOptionTesting(object):
         final_user_tokenX_balance = self.tokenX.balanceOf(self.user_1)
         final_pool_tokenX_balance = self.tokenX.balanceOf(self.generic_pool.address)
         final_locked_amount = self.tokenX_options.totalLockedAmount()
+        final_sfd_tokenX_balance = self.tokenX.balanceOf(self.settlement_fee_disbursal)
 
         assert (
             final_referrer_tokenX_balance - initial_referrer_tokenX_balance == 5000
@@ -1002,6 +1002,7 @@ class BinaryOptionTesting(object):
             self.total_fee,
             161667.0,
             final_pool_tokenX_balance - initial_pool_tokenX_balance,
+            final_sfd_tokenX_balance - initial_sfd_tokenX_balance,
             txn,
         )
 
@@ -1056,7 +1057,9 @@ class BinaryOptionTesting(object):
         initial_pool_tokenX_balance = self.tokenX.balanceOf(self.generic_pool.address)
         initial_locked_amount = self.tokenX_options.totalLockedAmount()
         initial_referrer_tokenX_balance = self.tokenX.balanceOf(self.referrer)
-
+        initial_sfd_tokenX_balance = self.tokenX.balanceOf(
+            self.settlement_fee_disbursal
+        )
         queued_trade = self.router.queuedTrades(0)
         open_params_1 = [
             queued_trade[10],
@@ -1079,6 +1082,7 @@ class BinaryOptionTesting(object):
         final_user_tokenX_balance = self.tokenX.balanceOf(self.user_1)
         final_pool_tokenX_balance = self.tokenX.balanceOf(self.generic_pool.address)
         final_locked_amount = self.tokenX_options.totalLockedAmount()
+        final_sfd_tokenX_balance = self.tokenX.balanceOf(self.settlement_fee_disbursal)
 
         assert (
             final_referrer_tokenX_balance - initial_referrer_tokenX_balance == 2500
@@ -1098,6 +1102,7 @@ class BinaryOptionTesting(object):
             self.total_fee,
             166667 - 2500,
             final_pool_tokenX_balance - initial_pool_tokenX_balance,
+            final_sfd_tokenX_balance - initial_sfd_tokenX_balance,
             txn,
         )
         self.chain.revert()
@@ -1136,7 +1141,9 @@ class BinaryOptionTesting(object):
         )
         initial_user_tokenX_balance = self.tokenX.balanceOf(self.user_1)
         initial_pool_tokenX_balance = self.tokenX.balanceOf(self.generic_pool.address)
-
+        initial_sfd_tokenX_balance = self.tokenX.balanceOf(
+            self.settlement_fee_disbursal
+        )
         queued_trade = self.router.queuedTrades(next_id)
         open_params_1 = [
             queued_trade[10],
@@ -1157,10 +1164,11 @@ class BinaryOptionTesting(object):
         )
         final_user_tokenX_balance = self.tokenX.balanceOf(self.user_1)
         final_pool_tokenX_balance = self.tokenX.balanceOf(self.generic_pool.address)
+        final_sfd_tokenX_balance = self.tokenX.balanceOf(self.settlement_fee_disbursal)
         assert txn.events["OpenTrade"], "Wrong action"
-        # assert (
-        #     final_user_tokenX_balance - initial_user_tokenX_balance == 450000.0
-        # ), "Wrong user balance"
+        assert (
+            final_user_tokenX_balance - initial_user_tokenX_balance == 450000.0
+        ), "Wrong user balance"
 
         self.verify_option_states(
             next_id,
@@ -1172,6 +1180,7 @@ class BinaryOptionTesting(object):
             1550000.0,
             357692.0,
             final_pool_tokenX_balance - initial_pool_tokenX_balance,
+            final_sfd_tokenX_balance - initial_sfd_tokenX_balance,
             txn,
         )
 
@@ -1208,6 +1217,9 @@ class BinaryOptionTesting(object):
         )
         initial_user_tokenX_balance = self.tokenX.balanceOf(self.user_1)
         initial_pool_tokenX_balance = self.tokenX.balanceOf(self.generic_pool.address)
+        initial_sfd_tokenX_balance = self.tokenX.balanceOf(
+            self.settlement_fee_disbursal
+        )
         queued_trade = self.router.queuedTrades(4)
         open_params_1 = [
             queued_trade[10],
@@ -1228,6 +1240,7 @@ class BinaryOptionTesting(object):
         )
         final_user_tokenX_balance = self.tokenX.balanceOf(self.user_1)
         final_pool_tokenX_balance = self.tokenX.balanceOf(self.generic_pool.address)
+        final_sfd_tokenX_balance = self.tokenX.balanceOf(self.settlement_fee_disbursal)
         assert txn.events["OpenTrade"], "Wrong action"
         assert (
             final_user_tokenX_balance - initial_user_tokenX_balance == 350000.0
@@ -1242,6 +1255,7 @@ class BinaryOptionTesting(object):
             650000.0,
             150000.0,
             final_pool_tokenX_balance - initial_pool_tokenX_balance,
+            final_sfd_tokenX_balance - initial_sfd_tokenX_balance,
             txn,
         )
 
@@ -1280,6 +1294,9 @@ class BinaryOptionTesting(object):
         )
         initial_user_tokenX_balance = self.tokenX.balanceOf(self.user_1)
         initial_pool_tokenX_balance = self.tokenX.balanceOf(self.generic_pool.address)
+        initial_sfd_tokenX_balance = self.tokenX.balanceOf(
+            self.settlement_fee_disbursal
+        )
         queued_trade = self.router.queuedTrades(6)
         open_params_1 = [
             queued_trade[10],
@@ -1300,6 +1317,7 @@ class BinaryOptionTesting(object):
         )
         final_user_tokenX_balance = self.tokenX.balanceOf(self.user_1)
         final_pool_tokenX_balance = self.tokenX.balanceOf(self.generic_pool.address)
+        final_sfd_tokenX_balance = self.tokenX.balanceOf(self.settlement_fee_disbursal)
         assert txn.events["OpenTrade"], "Wrong action"
         assert (
             final_user_tokenX_balance - initial_user_tokenX_balance == 1820001
@@ -1314,6 +1332,7 @@ class BinaryOptionTesting(object):
             5179999,
             1195384.0,
             final_pool_tokenX_balance - initial_pool_tokenX_balance,
+            final_sfd_tokenX_balance - initial_sfd_tokenX_balance,
             txn,
         )
         self.chain.revert()
@@ -1810,8 +1829,6 @@ class BinaryOptionTesting(object):
         self.verify_option_config()
         self.verify_owner()
         self.verify_pausing()
-        distribute = self.settlement_fee_disbursal.distributeSettlementFee(0)
-        assert not distribute.events, "Wrong distribution"
 
         with brownie.reverts():  # Wrong role
             self.tokenX_options.createFromRouter(

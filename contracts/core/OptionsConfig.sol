@@ -21,7 +21,7 @@ contract OptionsConfig is Ownable, IOptionsConfig {
     uint16 public override optionFeePerTxnLimitPercent = 5e2;
     uint16 public override minFee = 1;
 
-    mapping(uint16 => Window) public override marketTimes;
+    mapping(uint8 => Window) public override marketTimes;
 
     constructor(BufferBinaryPool _pool) {
         pool = _pool;
@@ -72,7 +72,7 @@ contract OptionsConfig is Ownable, IOptionsConfig {
     }
 
     function setMarketTime(Window[] memory windows) external onlyOwner {
-        for (uint16 index = 0; index < windows.length; index++) {
+        for (uint8 index = 0; index < windows.length; index++) {
             marketTimes[index] = windows[index];
         }
         emit UpdateMarketTime();
