@@ -37,10 +37,8 @@ class Router(object):
         bfr_binary_options_config_atm,
         bfr_binary_european_options_atm,
         publisher,
-        keeper_contract,
     ):
         self.tokenX_options = options
-        self.keeper_contract = keeper_contract
         self.publisher = publisher
         self.options_config = options_config
         self.generic_pool = generic_pool
@@ -818,10 +816,7 @@ class Router(object):
         self.chain.revert()
 
     def verify_keeper(self):
-        incentive = self.keeper_contract.reward() * 1e18
-        self.bfr.transfer(
-            self.keeper_contract.address, incentive * 100, {"from": self.owner}
-        )
+
         queued_trade = self.router.queuedTrades(1)
         open_params = [
             queued_trade[10],
@@ -963,48 +958,6 @@ class Router(object):
         )
         assert not txn.events, "SHouldn't change anything"
         assert self.router.queuedTrades(1)[12], "SHouldn't change anything"
-
-        # Transfer keeper incentive
-        initial_keeper_balance = self.bfr.balanceOf(self.bot)
-        txn = self.router.resolveQueuedTrades(
-            [
-                (
-                    1,
-                    *open_params,
-                    self.get_signature(
-                        *open_params,
-                    ),
-                )
-            ],
-            {"from": self.bot},
-        )
-        final_keeper_balance = self.bfr.balanceOf(self.bot)
-
-        assert txn.events["OpenTrade"], "Trade should have been cancelled"
-        assert (
-            final_keeper_balance - initial_keeper_balance
-            == incentive // 2  # Since 50% gets transferred while opening
-        ), "Wrong incentive"
-        self.chain.revert()
-
-        # No incentive should be given if the trade gets cancelled
-        self.chain.snapshot()
-        initial_keeper_balance = self.bfr.balanceOf(self.bot)
-        txn = self.router.resolveQueuedTrades(
-            [
-                (
-                    1,
-                    *open_params_2,
-                    self.get_signature(
-                        *open_params_2,
-                    ),
-                )
-            ],
-            {"from": self.bot},
-        )
-        final_keeper_balance = self.bfr.balanceOf(self.bot)
-        assert txn.events["CancelTrade"], "Trade should have been cancelled"
-        assert final_keeper_balance - initial_keeper_balance == 0, "Wrong incentive"
         self.chain.revert()
 
     def verify_option_unlocking(self):
@@ -1057,12 +1010,9 @@ class Router(object):
             txn.events["FailUnlock"]["reason"] == "Router: Signature didn't match"
         ), "Wrong event"
 
-        incentive = self.keeper_contract.reward() * 1e18
-
         # Should unlock with the right params
         self.chain.snapshot()
         user = self.tokenX_options.ownerOf(0)
-        initial_keeper_balance = self.bfr.balanceOf(self.bot)
         initial_user_balance = self.tokenX.balanceOf(user)
         txn = self.router.unlockOptions(
             [
@@ -1083,54 +1033,13 @@ class Router(object):
             ],
             {"from": self.bot},
         )
-        final_keeper_balance = self.bfr.balanceOf(self.bot)
         final_user_balance = self.tokenX.balanceOf(user)
 
         assert txn.events["Expire"]["id"] == 1 and txn.events["Exercise"]["id"] == 0
         assert (
-            final_keeper_balance - initial_keeper_balance == incentive * 50 * 2 // 100
-        ), "Wrong incentive"
-        assert (
             final_user_balance - initial_user_balance
             == txn.events["Exercise"]["profit"]
         ), "Wrong incentive"
-        self.chain.revert()
-
-        # In case of multiple unlocks keeper should only be paid for the unlocks with valid args
-        self.chain.snapshot()
-        user = self.tokenX_options.ownerOf(0)
-        initial_keeper_balance = self.bfr.balanceOf(self.bot)
-        txn = self.router.unlockOptions(
-            [
-                (
-                    0,
-                    *close_params_2,
-                    self.get_signature(
-                        *close_params_2,
-                    ),
-                ),
-                (
-                    1,
-                    *close_params_2,
-                    self.get_signature(
-                        *close_params_2,
-                    ),
-                ),
-            ],
-            {"from": self.bot},
-        )
-        final_keeper_balance = self.bfr.balanceOf(self.bot)
-
-        assert self.tokenX_options.ownerOf(0), "Token should still exists"
-        assert (
-            txn.events["Expire"]["id"] == 1
-            and txn.events["FailUnlock"]["optionId"] == 0
-            and txn.events["FailUnlock"]["reason"] == "Router: Wrong price"
-        )
-        assert (
-            final_keeper_balance - initial_keeper_balance == incentive * 50 // 100
-        ), "Wrong incentive"
-
         self.chain.revert()
 
     def complete_flow_test(self):
@@ -1159,7 +1068,6 @@ def test_router(contracts, accounts, chain):
     bfr_binary_options_config_atm = contracts["bfr_binary_options_config_atm"]
     bfr_binary_european_options_atm = contracts["bfr_binary_european_options_atm"]
     publisher = contracts["publisher"]
-    keeper_contract = contracts["keeper_contract"]
 
     total_fee = int(1e6)
     liquidity = int(1500e6)
@@ -1184,6 +1092,5 @@ def test_router(contracts, accounts, chain):
         bfr_binary_options_config_atm,
         bfr_binary_european_options_atm,
         publisher,
-        keeper_contract,
     )
     option.complete_flow_test()

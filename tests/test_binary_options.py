@@ -39,13 +39,11 @@ class BinaryOptionTesting(object):
         trader_nft_contract,
         referral_contract,
         publisher,
-        keeper_contract,
         ibfr_contract,
         settlement_fee_disbursal,
     ):
         self.bfr = ibfr_contract
         self.settlement_fee_disbursal = settlement_fee_disbursal
-        self.keeper_contract = keeper_contract
         self.publisher = publisher
         self.trader_nft_contract = trader_nft_contract
         self.forex_option = forex_option
@@ -100,26 +98,11 @@ class BinaryOptionTesting(object):
         self.generic_pool.provide(self.liquidity, 0, {"from": self.owner})
         self.router.setContractRegistry(self.tokenX_options.address, True)
         self.router.setInPrivateKeeperMode()
-        incentive = self.keeper_contract.reward() * 1e18
-        self.bfr.transfer(
-            self.keeper_contract.address, incentive * 100, {"from": self.owner}
-        )
+
         assert self.options_config.treasuryPercentage() == 3e2
         assert self.options_config.blpStakingPercentage() == 65e2
         assert self.options_config.bfrStakingPercentage() == 27e2
         assert self.options_config.insuranceFundPercentage() == 5e2
-
-    def verify_keeper_payment(self):
-        self.chain.snapshot()
-        balance = self.bfr.balanceOf(self.keeper_contract.address)
-
-        initial_balance = self.bfr.balanceOf(self.owner)
-        self.keeper_contract.withdraw()
-        final_balance = self.bfr.balanceOf(self.owner)
-
-        assert final_balance - initial_balance == balance, "Wrong balance"
-
-        self.chain.revert()
 
     def verify_referrals(self):
         self.chain.snapshot()
@@ -1825,7 +1808,6 @@ class BinaryOptionTesting(object):
     def complete_flow_test(self):
         self.init()
         self.verify_option_config()
-        self.verify_keeper_payment()
         self.verify_owner()
         self.verify_pausing()
         distribute = self.settlement_fee_disbursal.distributeSettlementFee(0)
@@ -1905,7 +1887,7 @@ def test_BinaryOptions(contracts, accounts, chain):
     binary_european_options_atm_3 = contracts["binary_european_options_atm_3"]
     referral_contract = contracts["referral_contract"]
     publisher = contracts["publisher"]
-    keeper_contract = contracts["keeper_contract"]
+
     settlement_fee_disbursal = contracts["settlement_fee_disbursal"]
 
     total_fee = int(1e6)
@@ -1933,7 +1915,6 @@ def test_BinaryOptions(contracts, accounts, chain):
         trader_nft_contract,
         referral_contract,
         publisher,
-        keeper_contract,
         ibfr_contract,
         settlement_fee_disbursal,
     )

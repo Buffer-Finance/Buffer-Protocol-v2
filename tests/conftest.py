@@ -33,7 +33,6 @@ def contracts(
     BufferRouter,
     SettlementFeeDisbursal,
     TraderNFT,
-    KeeperPayment,
     ReferralStorage,
 ):
 
@@ -44,22 +43,13 @@ def contracts(
 
     binary_pool_atm = BufferBinaryPool.deploy(tokenX.address, {"from": accounts[0]})
     OPTION_ISSUER_ROLE = binary_pool_atm.OPTION_ISSUER_ROLE()
-    keeper_contract = KeeperPayment.deploy(ibfr_contract, {"from": accounts[0]})
-    router = BufferRouter.deploy(
-        publisher, keeper_contract.address, {"from": accounts[0]}
-    )
+    router = BufferRouter.deploy(publisher, {"from": accounts[0]})
     trader_nft = TraderNFT.deploy(accounts[9], {"from": accounts[0]})
 
-    ROUTER_ROLE = keeper_contract.ROUTER_ROLE()
     BOT_ROLE = router.BOT_ROLE()
     router.grantRole(
         BOT_ROLE,
         accounts[4],
-        {"from": accounts[0]},
-    )
-    keeper_contract.grantRole(
-        ROUTER_ROLE,
-        router.address,
         {"from": accounts[0]},
     )
 
@@ -110,6 +100,7 @@ def contracts(
         binary_european_options_atm.address,
         {"from": accounts[0]},
     )
+    ROUTER_ROLE = binary_european_options_atm.ROUTER_ROLE()
     binary_european_options_atm.grantRole(
         ROUTER_ROLE,
         router.address,
@@ -339,6 +330,5 @@ def contracts(
         "bfr_binary_european_options_atm": bfr_binary_european_options_atm,
         "bfr_settlement_fee_disbursal": bfr_settlement_fee_disbursal,
         "publisher": publisher,
-        "keeper_contract": keeper_contract,
         "settlement_fee_disbursal": settlement_fee_disbursal,
     }

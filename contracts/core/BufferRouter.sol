@@ -18,7 +18,6 @@ contract BufferRouter is AccessControl, IBufferRouter {
     address public publisher;
     uint256 public nextQueueIdToProcess = 0;
     bool public isInPrivateKeeperMode = true;
-    IKeeperPayment public keeper;
 
     mapping(address => uint256[]) public userQueuedIds;
     mapping(address => uint256[]) public userCancelledQueuedIds;
@@ -27,9 +26,8 @@ contract BufferRouter is AccessControl, IBufferRouter {
     mapping(address => bool) public contractRegistry;
     mapping(address => bool) public isKeeper;
 
-    constructor(address _publisher, IKeeperPayment _keeper) {
+    constructor(address _publisher) {
         publisher = _publisher;
-        keeper = _keeper;
         _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
     }
 
@@ -227,9 +225,6 @@ contract BufferRouter is AccessControl, IBufferRouter {
                 emit FailUnlock(params.optionId, reason);
                 continue;
             }
-
-            // Distribute the reward to the keeper(msg.sender) for closing the trade
-            keeper.distributeForClose(params.optionId, amount, msg.sender);
         }
     }
 
@@ -355,8 +350,6 @@ contract BufferRouter is AccessControl, IBufferRouter {
 
         queuedTrade.isQueued = false;
 
-        // Distribute the reward to the keeper(msg.sender) for opening the trade
-        keeper.distributeForOpen(queueId, amount, msg.sender);
         emit OpenTrade(queueId, queuedTrade.user);
     }
 
