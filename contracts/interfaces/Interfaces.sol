@@ -39,9 +39,9 @@ interface IBufferRouter {
         uint256 slippage;
         bool allowPartialFill;
         uint256 queuedTime;
-        uint256 cancellationTime;
         bool isQueued;
         string referralCode;
+        uint256 traderNFTId;
     }
     struct Trade {
         uint256 queueId;
@@ -87,25 +87,27 @@ interface IBufferBinaryOptions {
         uint256 priceAtExpiration
     );
     event Pause(bool isPaused);
+    event UpdateReferral(
+        address referrer,
+        bool isReferralValid,
+        uint256 totalFee,
+        uint256 referrerFee,
+        uint256 rebate,
+        string referralCode
+    );
 
     function createFromRouter(
-        address user,
-        uint256 totalFee,
-        uint256 period,
-        bool isAbove,
-        uint256 strike,
-        uint256 amount,
-        string memory referralCode
+        OptionParams calldata optionParams,
+        bool isReferralValid
     ) external returns (uint256 optionID);
 
-    function checkParams(
-        uint256 totalFee,
-        bool allowPartialFill,
-        string memory referralCode,
-        address user,
-        uint256 period,
-        bool isAbove
-    ) external returns (uint256 amount, uint256 revisedFee);
+    function checkParams(OptionParams calldata optionParams)
+        external
+        returns (
+            uint256 amount,
+            uint256 revisedFee,
+            bool isReferralValid
+        );
 
     function runInitialChecks(
         uint256 slippage,
@@ -153,6 +155,17 @@ interface IBufferBinaryOptions {
         uint256 totalFee;
         uint256 createdAt;
     }
+    struct OptionParams {
+        uint256 strike;
+        uint256 amount;
+        uint256 period;
+        bool isAbove;
+        bool allowPartialFill;
+        uint256 totalFee;
+        address user;
+        string referralCode;
+        uint256 traderNFTId;
+    }
 
     function options(uint256 optionId)
         external
@@ -173,6 +186,15 @@ interface IBufferBinaryOptions {
 }
 
 interface ILiquidityPool {
+    struct LockedAmount {
+        uint256 timestamp;
+        uint256 amount;
+    }
+    struct ProvidedLiquidity {
+        uint256 unlockedAmount;
+        LockedAmount[] lockedAmounts;
+        uint256 nextIndexForUnlock;
+    }
     struct LockedLiquidity {
         uint256 amount;
         uint256 premium;
@@ -209,50 +231,58 @@ interface ILiquidityPool {
 
 interface IOptionsConfig {
     struct Window {
-        uint256 startHour;
-        uint256 startMinute;
-        uint256 endHour;
-        uint256 endMinute;
+        uint16 startHour;
+        uint16 startMinute;
+        uint16 endHour;
+        uint16 endMinute;
     }
 
     event UpdateStakingFeePercentage(
-        uint256 treasuryPercentage,
-        uint256 blpStakingPercentage,
-        uint256 bfrStakingPercentage,
-        uint256 insuranceFundPercentage
+        uint16 treasuryPercentage,
+        uint16 blpStakingPercentage,
+        uint16 bfrStakingPercentage,
+        uint16 insuranceFundPercentage
     );
     event UpdateMarketTime();
-    event UpdateMaxPeriod(uint256 value);
-    event UpdateOptionFeePerTxnLimitPercent(uint256 value);
-    event UpdateOverallPoolUtilizationLimit(uint256 value);
+    event UpdateMaxPeriod(uint32 value);
+    event UpdateOptionFeePerTxnLimitPercent(uint16 value);
+    event UpdateOverallPoolUtilizationLimit(uint16 value);
     event UpdateSettlementFeeDisbursalContract(address value);
     event UpdatetraderNFTContract(address value);
-    event UpdateAssetUtilizationLimit(uint256 value);
-    event UpdateMinFee(uint256 value);
+    event UpdateAssetUtilizationLimit(uint16 value);
+    event UpdateMinFee(uint16 value);
 
     function traderNFTContract() external view returns (address);
 
     function settlementFeeDisbursalContract() external view returns (address);
 
-    function marketTimes(uint256)
+    function marketTimes(uint16)
         external
         view
         returns (
-            uint256,
-            uint256,
-            uint256,
-            uint256
+            uint16,
+            uint16,
+            uint16,
+            uint16
         );
 
-    function assetUtilizationLimit() external view returns (uint256);
+    function assetUtilizationLimit() external view returns (uint16);
 
-    function overallPoolUtilizationLimit() external view returns (uint256);
+    function overallPoolUtilizationLimit() external view returns (uint16);
 
-    function maxPeriod() external view returns (uint256);
+    function maxPeriod() external view returns (uint32);
 
-    function minFee() external view returns (uint256);
+    function minFee() external view returns (uint16);
 
-    function optionFeePerTxnLimitPercent() external view returns (uint256);
+    function optionFeePerTxnLimitPercent() external view returns (uint16);
+
+    function treasuryPercentage() external view returns (uint16);
+
+    function blpStakingPercentage() external view returns (uint16);
+
+    function bfrStakingPercentage() external view returns (uint16);
+
+    function insuranceFundPercentage() external view returns (uint16);
 }
 
 interface ISettlementFeeDisbursal {
@@ -262,7 +292,15 @@ interface ISettlementFeeDisbursal {
 }
 
 interface ITraderNFT {
-    function userTier(address user) external view returns (uint8 tier);
+    function tokenOwner(uint256 id) external view returns (address user);
+
+    function tokenTierMappings(uint256 id) external view returns (uint8 tier);
+
+    event UpdateNftBasePrice(uint256 nftBasePrice);
+    event UpdateMaxNFTMintLimits(uint256 maxNFTMintLimit);
+    event UpdateBaseURI(string baseURI);
+    event Claim(uint256 claimTokenId, address account);
+    event Mint(uint256 tokenId, address account, uint8 tier);
 }
 
 interface IReferralStorage {
@@ -318,5 +356,10 @@ interface IReferralStorage {
     struct ReferralData {
         ReferrerData referrerData;
         ReferreeData referreeData;
+    }
+
+    struct Tier {
+        uint256 totalRebate; // e.g. 2400 for 24%
+        uint256 discountShare; // 5000 for 50%/50%, 7000 for 30% rebates/70% discount
     }
 }

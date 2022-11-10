@@ -67,7 +67,7 @@ class Router(object):
         self.expected_strike = int(400e8)
         self.slippage = 100
         self.allow_partial_fill = False
-        self.index = 12
+        self.index = 11
         # self.is_trader_nft = False
         self.referral_code = "code123"
         self.trader_id = 0
@@ -81,6 +81,7 @@ class Router(object):
             self.slippage,
             self.allow_partial_fill,
             self.referral_code,
+            0,
         ]
 
     def init(self):
@@ -150,6 +151,7 @@ class Router(object):
             self.slippage,
             True,
             self.referral_code,
+            0,
         )
         txn = self.router.initiateTrade(
             *params,
@@ -181,6 +183,7 @@ class Router(object):
             self.slippage,
             self.allow_partial_fill,
             self.referral_code,
+            0,
         )
         txn = self.router.initiateTrade(
             *params,
@@ -246,6 +249,7 @@ class Router(object):
                 self.slippage,
                 self.allow_partial_fill,
                 self.referral_code,
+                0,
                 {"from": self.owner},
             )
 
@@ -260,6 +264,7 @@ class Router(object):
                 self.slippage,
                 self.allow_partial_fill,
                 self.referral_code,
+                0,
                 {"from": self.owner},
             )
 
@@ -274,6 +279,7 @@ class Router(object):
                 int(6e2),  # Slippage higher than max value
                 self.allow_partial_fill,
                 self.referral_code,
+                0,
                 {"from": self.owner},
             )
 
@@ -287,6 +293,7 @@ class Router(object):
                 int(1e2),  # Slippage higher than max value
                 self.allow_partial_fill,
                 self.referral_code,
+                0,
                 {"from": self.owner},
             )
 
@@ -306,6 +313,7 @@ class Router(object):
             self.slippage,
             self.allow_partial_fill,
             self.referral_code,
+            0,
         )
         txn = self.router.initiateTrade(
             *params,
@@ -317,7 +325,6 @@ class Router(object):
 
         trade = list(self.router.queuedTrades(0))
 
-        trade.pop(10)
         trade.pop(10)
         trade.pop(10)
         assert trade == [0, 0, self.user_1, *params], "Wrong data"
@@ -337,7 +344,6 @@ class Router(object):
             {"from": self.owner},
         )
         trade = list(self.router.queuedTrades(1))
-        trade.pop(10)
         trade.pop(10)
         trade.pop(10)
         assert trade == [1, 0, self.owner, *params], "Wrong data"
@@ -536,6 +542,7 @@ class Router(object):
             self.slippage,
             self.allow_partial_fill,
             self.referral_code,
+            0,
         )
         txn = self.router.initiateTrade(
             *params,
@@ -662,6 +669,7 @@ class Router(object):
             int(5e2),  # Slippage higher than max value
             self.allow_partial_fill,
             self.referral_code,
+            0,
             {"from": self.owner},
         )
         queued_trade = self.router.queuedTrades(5)
@@ -696,6 +704,7 @@ class Router(object):
             int(5e2),  # Slippage higher than max value
             self.allow_partial_fill,
             self.referral_code,
+            0,
             {"from": self.owner},
         )
         queued_trade = self.router.queuedTrades(6)
@@ -726,6 +735,7 @@ class Router(object):
             int(5e2),  # Slippage higher than max value
             True,
             self.referral_code,
+            0,
             {"from": self.owner},
         )
         self.chain.sleep(10 * 60 + 1)
@@ -738,6 +748,7 @@ class Router(object):
             int(5e2),  # Slippage higher than max value
             True,
             self.referral_code,
+            0,
             {"from": self.owner},
         )
         self.generic_pool.withdraw(
@@ -753,6 +764,7 @@ class Router(object):
             int(5e2),  # Slippage higher than max value
             self.allow_partial_fill,
             self.referral_code,
+            0,
             {"from": self.owner},
         )
 

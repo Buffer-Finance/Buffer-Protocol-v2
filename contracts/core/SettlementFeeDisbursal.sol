@@ -2,9 +2,8 @@
 
 pragma solidity 0.8.4;
 
-import "./OptionsConfig.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
-import "./BufferBinaryOptions.sol";
+import "../interfaces/Interfaces.sol";
 
 /**
  * @author Heisenberg
@@ -13,8 +12,8 @@ import "./BufferBinaryOptions.sol";
  */
 contract SettlementFeeDisbursal {
     ERC20 public tokenX;
-    OptionsConfig public config; // TODO: Add interfaces
-    BufferBinaryOptions public optionsContract; // TODO: Add interfaces
+    IOptionsConfig public config;
+    IBufferBinaryOptions public optionsContract;
     address treasury;
     address blpStaking;
     address bfrStaking;
@@ -28,8 +27,8 @@ contract SettlementFeeDisbursal {
 
     constructor(
         ERC20 _tokenX,
-        OptionsConfig _config,
-        BufferBinaryOptions _optionsContract,
+        IOptionsConfig _config,
+        IBufferBinaryOptions _optionsContract,
         address _treasury,
         address _blpStaking,
         address _bfrStaking,
@@ -53,11 +52,11 @@ contract SettlementFeeDisbursal {
         // Incase the stakingAmount is 0
         if (stakingAmount > 0) {
             uint256 treasuryAmount = (stakingAmount *
-                config.treasuryPercentage()) / 100;
+                config.treasuryPercentage()) / 1e4;
             uint256 blpStakingAmount = (stakingAmount *
-                config.blpStakingPercentage()) / 100;
+                config.blpStakingPercentage()) / 1e4;
             uint256 bfrStakingAmount = (stakingAmount *
-                config.bfrStakingPercentage()) / 100;
+                config.bfrStakingPercentage()) / 1e4;
             uint256 insuranceAmount = stakingAmount -
                 treasuryAmount -
                 blpStakingAmount -

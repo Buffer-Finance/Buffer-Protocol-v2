@@ -15,17 +15,17 @@ contract OptionsConfig is Ownable, IOptionsConfig {
 
     address public override settlementFeeDisbursalContract;
     address public override traderNFTContract;
-    uint256 public treasuryPercentage = 3; // TODO: Add precision and reduce datatype size
-    uint256 public blpStakingPercentage = 65; // TODO: Add precision and reduce datatype size
-    uint256 public bfrStakingPercentage = 27; // TODO: Add precision and reduce datatype size
-    uint256 public insuranceFundPercentage = 5; // TODO: Add precision and reduce datatype size
-    uint256 public override assetUtilizationLimit = 10e2; // TODO: Add precision and reduce datatype size
-    uint256 public override overallPoolUtilizationLimit = 64e2; // TODO: Add precision and reduce datatype size
-    uint256 public override maxPeriod = 24 hours; // TODO: Add precision and reduce datatype size
-    uint256 public override optionFeePerTxnLimitPercent = 5e2; // TODO: Add precision and reduce datatype size
-    uint256 public override minFee = 1; // TODO: Add precision and reduce datatype size
+    uint16 public override treasuryPercentage = 3e2;
+    uint16 public override blpStakingPercentage = 65e2;
+    uint16 public override bfrStakingPercentage = 27e2;
+    uint16 public override insuranceFundPercentage = 5e2;
+    uint16 public override assetUtilizationLimit = 10e2;
+    uint16 public override overallPoolUtilizationLimit = 64e2;
+    uint32 public override maxPeriod = 24 hours;
+    uint16 public override optionFeePerTxnLimitPercent = 5e2;
+    uint16 public override minFee = 1;
 
-    mapping(uint256 => Window) public override marketTimes;
+    mapping(uint16 => Window) public override marketTimes;
 
     constructor(BufferBinaryPool _pool) {
         pool = _pool;
@@ -36,7 +36,7 @@ contract OptionsConfig is Ownable, IOptionsConfig {
         emit UpdatetraderNFTContract(value);
     }
 
-    function setMinFee(uint256 value) external onlyOwner {
+    function setMinFee(uint16 value) external onlyOwner {
         minFee = value;
         emit UpdateMinFee(value);
     }
@@ -49,24 +49,24 @@ contract OptionsConfig is Ownable, IOptionsConfig {
         emit UpdateSettlementFeeDisbursalContract(value);
     }
 
-    function setOptionFeePerTxnLimitPercent(uint256 value) external onlyOwner {
+    function setOptionFeePerTxnLimitPercent(uint16 value) external onlyOwner {
         optionFeePerTxnLimitPercent = value;
         emit UpdateOptionFeePerTxnLimitPercent(value);
     }
 
-    function setOverallPoolUtilizationLimit(uint256 value) external onlyOwner {
+    function setOverallPoolUtilizationLimit(uint16 value) external onlyOwner {
         require(value <= 100e2, "Utilization value too high");
         overallPoolUtilizationLimit = value;
         emit UpdateOverallPoolUtilizationLimit(value);
     }
 
-    function setAssetUtilizationLimit(uint256 value) external onlyOwner {
+    function setAssetUtilizationLimit(uint16 value) external onlyOwner {
         require(value <= 100e2, "Utilization value too high");
         assetUtilizationLimit = value;
         emit UpdateAssetUtilizationLimit(value);
     }
 
-    function setMaxPeriod(uint256 value) external onlyOwner {
+    function setMaxPeriod(uint32 value) external onlyOwner {
         require(
             value >= 5 minutes,
             "MaxPeriod needs to be greater than 5 minutes"
@@ -76,24 +76,24 @@ contract OptionsConfig is Ownable, IOptionsConfig {
     }
 
     function setMarketTime(Window[] memory windows) external onlyOwner {
-        for (uint256 index = 0; index < windows.length; index++) {
+        for (uint16 index = 0; index < windows.length; index++) {
             marketTimes[index] = windows[index];
         }
         emit UpdateMarketTime();
     }
 
     function setStakingFeePercentages(
-        uint256 _treasuryPercentage,
-        uint256 _blpStakingPercentage,
-        uint256 _bfrStakingPercentage,
-        uint256 _insuranceFundPercentage
+        uint16 _treasuryPercentage,
+        uint16 _blpStakingPercentage,
+        uint16 _bfrStakingPercentage,
+        uint16 _insuranceFundPercentage
     ) external onlyOwner {
         require(
             _treasuryPercentage +
                 _blpStakingPercentage +
                 _bfrStakingPercentage +
                 _insuranceFundPercentage ==
-                100,
+                1e4,
             "Wrong distribution"
         );
         treasuryPercentage = _treasuryPercentage;

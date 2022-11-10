@@ -6,29 +6,27 @@ import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
+import "../interfaces/Interfaces.sol";
 
 /// @custom:security-contact heseinberg@buffer.finance
-contract TraderNFT is ERC721, ERC721URIStorage, Ownable, ReentrancyGuard {
+contract TraderNFT is
+    ITraderNFT,
+    ERC721,
+    ERC721URIStorage,
+    Ownable,
+    ReentrancyGuard
+{
     using Counters for Counters.Counter;
     uint256 public nftBasePrice = 2 * 10**18;
     uint256 public maxNFTMintLimit = 10000;
     string public baseURI = "https://gateway.pinata.cloud/ipfs/";
+    address public admin;
 
     Counters.Counter public tokenIdCounter;
     Counters.Counter public claimTokenIdCounter;
 
-    mapping(uint256 => uint8) public tokenTierMappings;
+    mapping(uint256 => uint8) public override tokenTierMappings;
     mapping(uint256 => bool) public tokenMintMappings;
-    mapping(address => uint8) public userTier;
-
-    event UpdateNftBasePrice(uint256 nftBasePrice);
-    event UpdateMaxNFTMintLimits(uint256 maxNFTMintLimit);
-    event UpdateBaseURI(string baseURI);
-
-    event Claim(uint256 claimTokenId, address account);
-    event Mint(uint256 tokenId, address account, uint8 tier);
-
-    address public admin;
 
     constructor(address _admin) ERC721("Buffer Prime", "pBFR") {
         admin = _admin;
@@ -48,11 +46,6 @@ contract TraderNFT is ERC721, ERC721URIStorage, Ownable, ReentrancyGuard {
         tokenId = tokenIdCounter.current();
         tokenIdCounter.increment();
         tokenTierMappings[tokenId] = tier;
-
-        // userTier[to] = max(userTier[to], tier) // TODO: Remove this, fix bug
-        if (userTier[to] < tier) {
-            userTier[to] = tier;
-        }
 
         _safeMint(to, tokenId);
         _setTokenURI(tokenId, uri);
@@ -107,6 +100,15 @@ contract TraderNFT is ERC721, ERC721URIStorage, Ownable, ReentrancyGuard {
 
     function _baseURI() internal view override returns (string memory) {
         return baseURI;
+    }
+
+    function tokenOwner(uint256 tokenId)
+        public
+        view
+        override
+        returns (address)
+    {
+        return ownerOf(tokenId);
     }
 
     function setBaseURI(string memory value) external onlyOwner {

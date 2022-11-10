@@ -114,46 +114,48 @@ contract BufferBinaryOptions is
      * @dev Can only be called by router
      */
     function createFromRouter(
-        address user,
-        uint256 totalFee,
-        uint256 period,
-        bool isAbove,
-        uint256 strike,
-        uint256 amount,
-        string calldata referralCode
+        OptionParams calldata optionParams,
+        bool isReferralValid
     ) external override onlyRole(ROUTER_ROLE) returns (uint256 optionID) {
         Option memory option = Option(
             State.Active,
-            strike,
-            amount,
-            amount,
-            amount / 2,
-            block.timestamp + period,
-            isAbove,
-            totalFee,
+            optionParams.strike,
+            optionParams.amount,
+            optionParams.amount,
+            optionParams.amount / 2,
+            block.timestamp + optionParams.period,
+            optionParams.isAbove,
+            optionParams.totalFee,
             block.timestamp
         );
-        totalLockedAmount += amount;
+        totalLockedAmount += optionParams.amount;
         optionID = _generateTokenId();
-        userOptionIds[user].push(optionID);
+        userOptionIds[optionParams.user].push(optionID);
         options[optionID] = option;
-        _mint(user, optionID);
+        _mint(optionParams.user, optionID);
 
         uint256 referrerFee = _processReferralRebate(
-            referral.codeOwner(referralCode),
-            user,
-            totalFee,
-            amount,
-            referralCode,
-            isAbove
+            optionParams.user,
+            optionParams.totalFee,
+            optionParams.amount,
+            optionParams.referralCode,
+            optionParams.isAbove,
+            isReferralValid
         );
 
-        uint256 settlementFee = totalFee - option.premium - referrerFee;
+        uint256 settlementFee = optionParams.totalFee -
+            option.premium -
+            referrerFee;
         ISettlementFeeDisbursal(config.settlementFeeDisbursalContract())
-            .distributeSettlementFee(settlementFee); // TODO: Check gas reduction on removing this
+            .distributeSettlementFee(settlementFee);
 
         pool.lock(optionID, option.lockedAmount, option.premium);
-        emit Create(optionID, user, settlementFee, totalFee);
+        emit Create(
+            optionID,
+            optionParams.user,
+            settlementFee,
+            optionParams.totalFee
+        );
     }
 
     /**
@@ -202,7 +204,8 @@ contract BufferBinaryOptions is
         uint256 amount,
         address user,
         bool isAbove,
-        string calldata referralCode
+        string calldata referralCode,
+        uint256 traderNFTId
     )
         public
         view
@@ -212,10 +215,11 @@ contract BufferBinaryOptions is
             uint256 premium
         )
     {
-        uint256 settlementFeePercentage = _getSettlementFeePercentage(
+        (uint256 settlementFeePercentage, ) = _getSettlementFeePercentage(
             referral.codeOwner(referralCode),
             user,
-            _getbaseSettlementFeePercentage(isAbove)
+            _getbaseSettlementFeePercentage(isAbove),
+            traderNFTId
         );
         (total, settlementFee, premium) = _fees(
             amount,
@@ -258,7 +262,7 @@ contract BufferBinaryOptions is
                 uint256 startMinute,
                 uint256 endHour,
                 uint256 endMinute
-            ) = config.marketTimes(currentDay);
+            ) = config.marketTimes(uint16(currentDay));
 
             if (
                 (currentHour > startHour ||
@@ -321,16 +325,19 @@ contract BufferBinaryOptions is
      * @notice Runs all the checks on the option parameters and
      * returns the revised amount and fee
      */
-    function checkParams(
-        uint256 totalFee,
-        bool allowPartialFill,
-        string calldata referralCode,
-        address user,
-        uint256 period,
-        bool isAbove
-    ) external view override returns (uint256 amount, uint256 revisedFee) {
+    function checkParams(OptionParams calldata optionParams)
+        external
+        view
+        override
+        returns (
+            uint256 amount,
+            uint256 revisedFee,
+            bool isReferralValid
+        )
+    {
         require(
-            assetCategory != AssetCategory.Forex || isInCreationWindow(period),
+            assetCategory != AssetCategory.Forex ||
+                isInCreationWindow(optionParams.period),
             "O30"
         );
 
@@ -339,24 +346,29 @@ contract BufferBinaryOptions is
         // --------- Calculate the max fee due to the max txn limit
         uint256 maxPerTxnFee = ((pool.availableBalance() *
             config.optionFeePerTxnLimitPercent()) / 100e2);
-        uint256 newFee = min(totalFee, maxPerTxnFee);
+        uint256 newFee = min(optionParams.totalFee, maxPerTxnFee);
 
         // --------- Calculate the amount here from the new fees
-        uint256 settlementFeePercentage = _getSettlementFeePercentage(
-            referral.codeOwner(referralCode),
-            user,
-            _getbaseSettlementFeePercentage(isAbove)
+        uint256 settlementFeePercentage;
+        (
+            settlementFeePercentage,
+            isReferralValid
+        ) = _getSettlementFeePercentage(
+            referral.codeOwner(optionParams.referralCode),
+            optionParams.user,
+            _getbaseSettlementFeePercentage(optionParams.isAbove),
+            optionParams.traderNFTId
         );
         (uint256 unitFee, , ) = _fees(10**decimals(), settlementFeePercentage);
         amount = (newFee * 10**decimals()) / unitFee;
 
         // --------- Recalculate the amount and the fees if values are greater than the max and partial fill is allowed
-        if (amount > maxAmount || newFee < totalFee) {
-            require(allowPartialFill, "O29");
+        if (amount > maxAmount || newFee < optionParams.totalFee) {
+            require(optionParams.allowPartialFill, "O29");
             amount = min(amount, maxAmount);
             (revisedFee, , ) = _fees(amount, settlementFeePercentage);
         } else {
-            revisedFee = totalFee;
+            revisedFee = optionParams.totalFee;
         }
     }
 
@@ -457,13 +469,15 @@ contract BufferBinaryOptions is
      * updates the stats in the referral storage contract
      */
     function _processReferralRebate(
-        address referrer,
         address user,
         uint256 totalFee,
         uint256 amount,
         string calldata referralCode,
-        bool isAbove
+        bool isAbove,
+        bool isReferralValid
     ) internal returns (uint256 referrerFee) {
+        address referrer = referral.codeOwner(referralCode);
+
         if (referrer != user && referrer != address(0)) {
             referrerFee = ((totalFee *
                 referral.referrerTierDiscount(
@@ -471,28 +485,19 @@ contract BufferBinaryOptions is
                 )) / (1e4 * 1e3));
             if (referrerFee > 0) {
                 tokenX.transfer(referrer, referrerFee);
-                referral.setReferrerReferralData(
-                    referrer,
-                    totalFee,
-                    referrerFee
-                );
 
-                (bool isReferralValid, ) = _getSettlementFeeDiscount(
-                    referrer,
-                    user
+                (uint256 formerUnitFee, , ) = _fees(
+                    10**decimals(),
+                    _getbaseSettlementFeePercentage(isAbove)
                 );
-                if (isReferralValid) {
-                    (uint256 formerUnitFee, , ) = _fees(
-                        10**decimals(),
-                        _getbaseSettlementFeePercentage(isAbove)
-                    );
-                    referral.setUserReferralData(
-                        user,
-                        totalFee,
-                        ((formerUnitFee * amount) - totalFee),
-                        referralCode
-                    );
-                }
+                emit UpdateReferral(
+                    referrer,
+                    isReferralValid,
+                    totalFee,
+                    referrerFee,
+                    ((formerUnitFee * amount) - totalFee),
+                    referralCode
+                );
             }
         }
     }
@@ -501,15 +506,17 @@ contract BufferBinaryOptions is
      * @notice Calculates the discount to be applied on settlement fee based on
      * NFT and referrer tiers
      */
-    function _getSettlementFeeDiscount(address referrer, address user)
-        internal
-        view
-        returns (bool isReferralValid, uint8 maxStep)
-    {
+    function _getSettlementFeeDiscount(
+        address referrer,
+        address user,
+        uint256 traderNFTId
+    ) public view returns (bool isReferralValid, uint8 maxStep) {
         if (config.traderNFTContract() != address(0)) {
-            maxStep = nftTierStep[
-                ITraderNFT(config.traderNFTContract()).userTier(user)
-            ];
+            ITraderNFT nftContract = ITraderNFT(config.traderNFTContract());
+            if (nftContract.tokenOwner(traderNFTId) == user)
+                maxStep = nftTierStep[
+                    nftContract.tokenTierMappings(traderNFTId)
+                ];
         }
         if (referrer != user && referrer != address(0)) {
             uint8 step = referral.referrerTierStep(
@@ -528,10 +535,20 @@ contract BufferBinaryOptions is
     function _getSettlementFeePercentage(
         address referrer,
         address user,
-        uint16 baseSettlementFeePercentage
-    ) internal view returns (uint256 settlementFeePercentage) {
+        uint16 baseSettlementFeePercentage,
+        uint256 traderNFTId
+    )
+        internal
+        view
+        returns (uint256 settlementFeePercentage, bool isReferralValid)
+    {
         settlementFeePercentage = baseSettlementFeePercentage;
-        (, uint256 maxStep) = _getSettlementFeeDiscount(referrer, user);
+        uint256 maxStep;
+        (isReferralValid, maxStep) = _getSettlementFeeDiscount(
+            referrer,
+            user,
+            traderNFTId
+        );
         settlementFeePercentage =
             settlementFeePercentage -
             (stepSize * maxStep);

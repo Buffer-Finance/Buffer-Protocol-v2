@@ -70,7 +70,8 @@ contract BufferRouter is AccessControl, IBufferRouter {
         uint256 expectedStrike,
         uint256 slippage,
         bool allowPartialFill,
-        string memory referralCode
+        string memory referralCode,
+        uint256 traderNFTId
     ) external returns (uint256 queueId) {
         // Checks if the target contract has been registered
         _validateContract(targetContract);
@@ -102,9 +103,9 @@ contract BufferRouter is AccessControl, IBufferRouter {
             slippage,
             allowPartialFill,
             block.timestamp,
-            0,
             true,
-            referralCode
+            referralCode,
+            traderNFTId
         );
 
         queuedTrades[queueId] = queuedTrade;
@@ -305,17 +306,29 @@ contract BufferRouter is AccessControl, IBufferRouter {
         // Check all the parameters and compute the amount and revised fee
         uint256 amount;
         uint256 revisedFee;
-        try
-            optionsContract.checkParams(
-                queuedTrade.totalFee,
-                queuedTrade.allowPartialFill,
-                queuedTrade.referralCode,
-                queuedTrade.user,
+        bool isReferralValid;
+        IBufferBinaryOptions.OptionParams
+            memory optionParams = IBufferBinaryOptions.OptionParams(
+                queuedTrade.expectedStrike,
+                0,
                 queuedTrade.period,
-                queuedTrade.isAbove
-            )
-        returns (uint256 _amount, uint256 _revisedFee) {
-            (amount, revisedFee) = (_amount, _revisedFee);
+                queuedTrade.isAbove,
+                queuedTrade.allowPartialFill,
+                queuedTrade.totalFee,
+                queuedTrade.user,
+                queuedTrade.referralCode,
+                queuedTrade.traderNFTId
+            );
+        try optionsContract.checkParams(optionParams) returns (
+            uint256 _amount,
+            uint256 _revisedFee,
+            bool _isReferralValid
+        ) {
+            (amount, revisedFee, isReferralValid) = (
+                _amount,
+                _revisedFee,
+                _isReferralValid
+            );
         } catch Error(string memory reason) {
             _cancelQueuedTrade(queueId);
             emit CancelTrade(queueId, queuedTrade.user, reason);
@@ -334,15 +347,11 @@ contract BufferRouter is AccessControl, IBufferRouter {
             );
         }
 
-        optionsContract.createFromRouter(
-            queuedTrade.user,
-            revisedFee,
-            queuedTrade.period,
-            queuedTrade.isAbove,
-            price,
-            amount,
-            queuedTrade.referralCode
-        );
+        optionParams.totalFee = revisedFee;
+        optionParams.strike = price;
+        optionParams.amount = amount;
+
+        optionsContract.createFromRouter(optionParams, isReferralValid);
 
         queuedTrade.isQueued = false;
 
@@ -357,7 +366,6 @@ contract BufferRouter is AccessControl, IBufferRouter {
             queuedTrade.targetContract
         );
         queuedTrade.isQueued = false;
-        queuedTrade.cancellationTime = block.timestamp;
         IERC20(optionsContract.tokenX()).transfer(
             queuedTrade.user,
             queuedTrade.totalFee

@@ -18,15 +18,6 @@ contract BufferBinaryPool is
     AccessControl,
     ILiquidityPool
 {
-    struct LockedAmount {
-        uint256 timestamp;
-        uint256 amount;
-    }
-    struct ProvidedLiquidity {
-        uint256 unlockedAmount;
-        LockedAmount[] lockedAmounts;
-        uint256 nextIndexForUnlock;
-    }
     ERC20 public tokenX;
     uint256 public constant ACCURACY = 1e3;
     uint256 public constant INITIAL_RATE = 1;

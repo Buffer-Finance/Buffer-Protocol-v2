@@ -104,10 +104,10 @@ class BinaryOptionTesting(object):
         self.bfr.transfer(
             self.keeper_contract.address, incentive * 100, {"from": self.owner}
         )
-        assert self.options_config.treasuryPercentage() == 3
-        assert self.options_config.blpStakingPercentage() == 65
-        assert self.options_config.bfrStakingPercentage() == 27
-        assert self.options_config.insuranceFundPercentage() == 5
+        assert self.options_config.treasuryPercentage() == 3e2
+        assert self.options_config.blpStakingPercentage() == 65e2
+        assert self.options_config.bfrStakingPercentage() == 27e2
+        assert self.options_config.insuranceFundPercentage() == 5e2
 
     def verify_keeper_payment(self):
         self.chain.snapshot()
@@ -171,21 +171,21 @@ class BinaryOptionTesting(object):
 
         # assetUtilizationLimit
         with brownie.reverts("Wrong distribution"):
-            self.options_config.setStakingFeePercentages(10, 20, 20, 110)
+            self.options_config.setStakingFeePercentages(10e2, 20e2, 20e2, 110e2)
         with brownie.reverts():  # Wrong role
             self.options_config.setStakingFeePercentages(
-                3, 65, 27, 5, {"from": self.user_1}
+                3e2, 65e2, 27e2, 5e2, {"from": self.user_1}
             )
         self.options_config.setStakingFeePercentages(
-            3,
-            65,
-            27,
-            5,
+            3e2,
+            65e2,
+            27e2,
+            5e2,
         )
-        assert self.options_config.treasuryPercentage() == 3
-        assert self.options_config.blpStakingPercentage() == 65
-        assert self.options_config.bfrStakingPercentage() == 27
-        assert self.options_config.insuranceFundPercentage() == 5
+        assert self.options_config.treasuryPercentage() == 3e2
+        assert self.options_config.blpStakingPercentage() == 65e2
+        assert self.options_config.bfrStakingPercentage() == 27e2
+        assert self.options_config.insuranceFundPercentage() == 5e2
 
         with brownie.reverts():  # Wrong role
             self.options_config.transferOwnership(self.user_2, {"from": self.user_1})
@@ -299,6 +299,7 @@ class BinaryOptionTesting(object):
             self.slippage,
             self.allow_partial_fill,
             self.referral_code,
+            0,
         )
 
         # Shouldn't allow forex trades when market times haven't been set
@@ -385,6 +386,7 @@ class BinaryOptionTesting(object):
             self.slippage,
             self.allow_partial_fill,
             self.referral_code,
+            0,
         )
 
         self.chain.snapshot()
@@ -544,6 +546,7 @@ class BinaryOptionTesting(object):
             self.slippage,
             self.allow_partial_fill,
             self.referral_code,
+            0,
             {"from": self.user_1},
         )
         queued_trade = self.router.queuedTrades(next_id)
@@ -618,6 +621,7 @@ class BinaryOptionTesting(object):
             self.slippage,
             self.allow_partial_fill,
             self.referral_code,
+            0,
         )
 
         self.referral_contract.registerCode(
@@ -705,6 +709,7 @@ class BinaryOptionTesting(object):
             self.slippage,
             self.allow_partial_fill,
             self.referral_code,
+            0,
         )
         self.referral_contract.setReferrerTier(self.user_1, 1, {"from": self.owner})
         self.referral_contract.registerCode(
@@ -771,6 +776,7 @@ class BinaryOptionTesting(object):
             self.slippage,
             self.allow_partial_fill,
             self.referral_code,
+            0,
         )
         # self.referral_contract.setReferrerTier(self.owner, 1, {"from": self.owner})
         # self.referral_contract.registerCode(
@@ -845,6 +851,7 @@ class BinaryOptionTesting(object):
 
     def verify_creation_with_no_referral_and_nft(self):
         self.chain.snapshot()
+        self.options_config.settraderNFTContract(self.trader_nft_contract.address)
 
         self.tokenX.transfer(self.user_1, self.total_fee * 3, {"from": self.owner})
         self.tokenX.approve(
@@ -868,6 +875,7 @@ class BinaryOptionTesting(object):
             self.slippage,
             self.allow_partial_fill,
             self.referral_code,
+            0,
         )
 
         self.router.initiateTrade(
@@ -921,7 +929,10 @@ class BinaryOptionTesting(object):
         self.chain.revert()
 
     def verify_creation_with_referral_and_nft(self):
+        self.chain.snapshot()
         # Case 1 : referrer tier > nft tier
+        self.options_config.settraderNFTContract(self.trader_nft_contract.address)
+
         self.referral_contract.setReferrerTier(self.referrer, 1, {"from": self.owner})
         self.referral_contract.registerCode(
             self.referral_code,
@@ -954,6 +965,7 @@ class BinaryOptionTesting(object):
             self.slippage,
             self.allow_partial_fill,
             self.referral_code,
+            0,
         )
 
         self.router.initiateTrade(
@@ -1013,6 +1025,9 @@ class BinaryOptionTesting(object):
         self.chain.revert()
 
         # Case 2 : referrer tier < nft tier
+        self.chain.snapshot()
+        self.options_config.settraderNFTContract(self.trader_nft_contract.address)
+
         self.referral_contract.setReferrerTier(self.referrer, 0, {"from": self.owner})
         self.referral_contract.registerCode(
             self.referral_code,
@@ -1033,9 +1048,10 @@ class BinaryOptionTesting(object):
             self.user_1,
             metadata_hash,
             2,
-            1,
+            0,
             {"from": self.owner},
         )
+
         params = (
             self.total_fee,
             self.period,
@@ -1045,6 +1061,7 @@ class BinaryOptionTesting(object):
             self.slippage,
             self.allow_partial_fill,
             self.referral_code,
+            0,
         )
 
         self.router.initiateTrade(
@@ -1117,6 +1134,7 @@ class BinaryOptionTesting(object):
             self.slippage,
             self.allow_partial_fill,
             self.referral_code,
+            0,
         )
         next_id = self.router.nextQueueId()
 
@@ -1189,6 +1207,7 @@ class BinaryOptionTesting(object):
             self.slippage,
             self.allow_partial_fill,
             self.referral_code,
+            0,
         )
 
         self.router.initiateTrade(
@@ -1262,6 +1281,7 @@ class BinaryOptionTesting(object):
             self.slippage,
             self.allow_partial_fill,
             self.referral_code,
+            0,
         )
         self.router.initiateTrade(
             *params,
@@ -1327,6 +1347,7 @@ class BinaryOptionTesting(object):
             self.slippage,
             self.allow_partial_fill,
             self.referral_code,
+            0,
         )
 
         self.router.initiateTrade(
@@ -1538,6 +1559,7 @@ class BinaryOptionTesting(object):
             self.slippage,
             self.allow_partial_fill,
             self.referral_code,
+            0,
         )
 
         # Buy multiple trades for asset A
@@ -1648,6 +1670,7 @@ class BinaryOptionTesting(object):
             self.slippage,
             self.allow_partial_fill,
             self.referral_code,
+            0,
         )
         next_id = self.router.nextQueueId()
         next_option_id = self.tokenX_option_2.nextTokenId()
@@ -1726,6 +1749,7 @@ class BinaryOptionTesting(object):
             self.slippage,
             self.allow_partial_fill,
             self.referral_code,
+            0,
         )
 
         with brownie.reverts():  # Wrong role
@@ -1759,6 +1783,7 @@ class BinaryOptionTesting(object):
             self.slippage,
             self.allow_partial_fill,
             self.referral_code,
+            0,
         )
         next_id = self.router.nextQueueId()
         next_option_id = self.tokenX_options.nextTokenId()
@@ -1808,13 +1833,18 @@ class BinaryOptionTesting(object):
 
         with brownie.reverts():  # Wrong role
             self.tokenX_options.createFromRouter(
-                self.user_1,
-                self.total_fee,
-                self.period,
-                True,
-                self.strike,
-                1e6,
-                self.referral_code,
+                (
+                    self.strike,
+                    0,
+                    self.period,
+                    True,
+                    True,
+                    self.total_fee,
+                    self.user_1,
+                    "1e6",
+                    0,
+                ),
+                False,
                 {"from": self.accounts[0]},
             )
         self.verify_forex_option_trading_window()

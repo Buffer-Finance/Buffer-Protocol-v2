@@ -102,10 +102,7 @@ def test_nft_creation(contracts, accounts, chain):
         trader_nft_contract.tokenURI(tokenId)
         == f"https://gateway.pinata.cloud/ipfs/{metadata_hash}"
     )
-    assert (
-        trader_nft_contract.tokenTierMappings(tokenId) == tier
-        and trader_nft_contract.userTier(account) == tier
-    ), "Tiers should tally"
+    assert trader_nft_contract.tokenTierMappings(tokenId) == tier, "Tiers should tally"
 
     assert trader_nft_contract.tokenIdCounter() == 1, "setNftBasePrice verified"
 
@@ -134,10 +131,7 @@ def test_nft_creation(contracts, accounts, chain):
         claimTokenId + 1,
         {"from": accounts[0]},
     )
-    assert (
-        trader_nft_contract.tokenTierMappings(tokenId + 1) == 6
-        and trader_nft_contract.userTier(account) == 6
-    ), "Tiers should tally"
+    assert trader_nft_contract.tokenTierMappings(tokenId + 1) == 6, "Tiers should tally"
     chain.revert()
 
     chain.snapshot()
@@ -148,8 +142,5 @@ def test_nft_creation(contracts, accounts, chain):
         claimTokenId + 1,
         {"from": accounts[0]},
     )
-    assert (
-        trader_nft_contract.tokenTierMappings(tokenId + 1) == 4
-        and trader_nft_contract.userTier(account) == 5
-    ), "Tiers should tally"
+    assert trader_nft_contract.tokenTierMappings(tokenId + 1) == 4, "Tiers should tally"
     chain.revert()

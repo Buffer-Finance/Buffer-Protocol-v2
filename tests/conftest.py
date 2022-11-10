@@ -120,7 +120,7 @@ def contracts(
         accounts[4],
         {"from": accounts[0]},
     )
-    binary_options_config_atm.settraderNFTContract(trader_nft.address)
+    # binary_options_config_atm.settraderNFTContract(trader_nft.address)
     binary_european_options_atm.configure(
         15e2, 15e2, [0, 1, 2, 3], {"from": accounts[0]}
     )
@@ -181,7 +181,7 @@ def contracts(
         binary_european_options_atm_2.address,
         {"from": accounts[0]},
     )
-    binary_options_config_atm_2.settraderNFTContract(trader_nft.address)
+    # binary_options_config_atm_2.settraderNFTContract(trader_nft.address)
     binary_european_options_atm_2.configure(
         15e2, 15e2, [0, 1, 2, 3], {"from": accounts[0]}
     )
@@ -243,7 +243,7 @@ def contracts(
         accounts[4],
         {"from": accounts[0]},
     )
-    binary_options_config_atm_3.settraderNFTContract(trader_nft.address)
+    # binary_options_config_atm_3.settraderNFTContract(trader_nft.address)
     binary_european_options_atm_3.configure(
         15e2, 15e2, [0, 1, 2, 3], {"from": accounts[0]}
     )
@@ -310,7 +310,7 @@ def contracts(
         accounts[4],
         {"from": accounts[0]},
     )
-    bfr_binary_options_config_atm.settraderNFTContract(trader_nft.address)
+    # bfr_binary_options_config_atm.settraderNFTContract(trader_nft.address)
     bfr_binary_european_options_atm.configure(
         15e2, 15e2, [0, 1, 2, 3], {"from": accounts[0]}
     )

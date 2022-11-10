@@ -5,13 +5,6 @@ import "@openzeppelin/contracts/access/AccessControl.sol";
 import "../interfaces/Interfaces.sol";
 
 contract ReferralStorage is IReferralStorage, AccessControl {
-    struct Tier {
-        uint256 totalRebate; // e.g. 2400 for 24%
-        uint256 discountShare; // 5000 for 50%/50%, 7000 for 30% rebates/70% discount
-    }
-
-    uint256 public constant BASIS_POINTS = 10000;
-
     mapping(address => uint8) public override referrerTier; // link between user <> tier
     mapping(uint8 => Tier) public tiers;
     mapping(uint8 => uint8) public override referrerTierStep;
