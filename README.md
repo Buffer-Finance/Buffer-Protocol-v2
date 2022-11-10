@@ -133,6 +133,4 @@ While checking the coverage please note the following things:
     >> AccessControl._revokeRole - 0.0%
     >> AccessControl.renounceRole - 0.0%
 
-  contract: SettlementFeeDisbursal - 100.0%
-    SettlementFeeDisbursal.distributeSettlementFee - 100.0%
 ```
