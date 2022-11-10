@@ -15,10 +15,6 @@ contract OptionsConfig is Ownable, IOptionsConfig {
 
     address public override settlementFeeDisbursalContract;
     address public override traderNFTContract;
-    uint16 public override treasuryPercentage = 3e2;
-    uint16 public override blpStakingPercentage = 65e2;
-    uint16 public override bfrStakingPercentage = 27e2;
-    uint16 public override insuranceFundPercentage = 5e2;
     uint16 public override assetUtilizationLimit = 10e2;
     uint16 public override overallPoolUtilizationLimit = 64e2;
     uint32 public override maxPeriod = 24 hours;
@@ -80,32 +76,5 @@ contract OptionsConfig is Ownable, IOptionsConfig {
             marketTimes[index] = windows[index];
         }
         emit UpdateMarketTime();
-    }
-
-    function setStakingFeePercentages(
-        uint16 _treasuryPercentage,
-        uint16 _blpStakingPercentage,
-        uint16 _bfrStakingPercentage,
-        uint16 _insuranceFundPercentage
-    ) external onlyOwner {
-        require(
-            _treasuryPercentage +
-                _blpStakingPercentage +
-                _bfrStakingPercentage +
-                _insuranceFundPercentage ==
-                1e4,
-            "Wrong distribution"
-        );
-        treasuryPercentage = _treasuryPercentage;
-        blpStakingPercentage = _blpStakingPercentage;
-        bfrStakingPercentage = _bfrStakingPercentage;
-        insuranceFundPercentage = _insuranceFundPercentage;
-
-        emit UpdateStakingFeePercentage(
-            treasuryPercentage,
-            blpStakingPercentage,
-            bfrStakingPercentage,
-            insuranceFundPercentage
-        );
     }
 }

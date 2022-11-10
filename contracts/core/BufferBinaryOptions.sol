@@ -74,10 +74,6 @@ contract BufferBinaryOptions is
         require(_baseSettlementFeePercentageForBelow <= 50e2, "O28");
         baseSettlementFeePercentageForBelow = _baseSettlementFeePercentageForBelow;
 
-        // nftTierStep[0] = 0;
-        // nftTierStep[1] = 1;
-        // nftTierStep[2] = 2;
-        // nftTierStep[3] = 3;
         for (uint8 i; i < 4; i++) {
             nftTierStep[i] = _nftTierStep[i];
         }
@@ -88,13 +84,6 @@ contract BufferBinaryOptions is
      */
     function approvePoolToTransferTokenX() public {
         tokenX.approve(address(pool), ~uint256(0));
-    }
-
-    /**
-     * @notice Grants complete approval from the pool SFDContract
-     */
-    function approveSFDContractToTransferTokenX() public {
-        tokenX.approve(config.settlementFeeDisbursalContract(), ~uint256(0));
     }
 
     /**
@@ -146,9 +135,8 @@ contract BufferBinaryOptions is
         uint256 settlementFee = optionParams.totalFee -
             option.premium -
             referrerFee;
-        ISettlementFeeDisbursal(config.settlementFeeDisbursalContract())
-            .distributeSettlementFee(settlementFee);
 
+        tokenX.transfer(config.settlementFeeDisbursalContract(), settlementFee);
         pool.lock(optionID, option.lockedAmount, option.premium);
         emit Create(
             optionID,

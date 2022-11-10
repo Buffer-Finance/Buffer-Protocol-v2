@@ -3,6 +3,7 @@
 pragma solidity 0.8.4;
 
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
 import "../interfaces/Interfaces.sol";
 
 /**
@@ -10,7 +11,7 @@ import "../interfaces/Interfaces.sol";
  * @title Settlement Fee Disbursal Contract (SFD)
  * @notice Distributes settlement fees to the registered addresses
  */
-contract SettlementFeeDisbursal {
+contract SettlementFeeDisbursal is Ownable, ISettlementFeeDisbursal {
     ERC20 public tokenX;
     IOptionsConfig public config;
     IBufferBinaryOptions public optionsContract;
@@ -18,12 +19,10 @@ contract SettlementFeeDisbursal {
     address blpStaking;
     address bfrStaking;
     address insuranceFund;
-    event DistributeSettlementFee(
-        uint256 treasuryFee,
-        uint256 blpStakingFee,
-        uint256 bfrStakingFee,
-        uint256 insuranceFee
-    );
+    uint16 public treasuryPercentage = 3e2;
+    uint16 public blpStakingPercentage = 65e2;
+    uint16 public bfrStakingPercentage = 27e2;
+    uint16 public insuranceFundPercentage = 5e2;
 
     constructor(
         ERC20 _tokenX,
@@ -43,6 +42,33 @@ contract SettlementFeeDisbursal {
         insuranceFund = _insuranceFund;
     }
 
+    function setStakingFeePercentages(
+        uint16 _treasuryPercentage,
+        uint16 _blpStakingPercentage,
+        uint16 _bfrStakingPercentage,
+        uint16 _insuranceFundPercentage
+    ) external onlyOwner {
+        require(
+            _treasuryPercentage +
+                _blpStakingPercentage +
+                _bfrStakingPercentage +
+                _insuranceFundPercentage ==
+                1e4,
+            "Wrong distribution"
+        );
+        treasuryPercentage = _treasuryPercentage;
+        blpStakingPercentage = _blpStakingPercentage;
+        bfrStakingPercentage = _bfrStakingPercentage;
+        insuranceFundPercentage = _insuranceFundPercentage;
+
+        emit UpdateStakingFeePercentage(
+            treasuryPercentage,
+            blpStakingPercentage,
+            bfrStakingPercentage,
+            insuranceFundPercentage
+        );
+    }
+
     function distributeSettlementFee(uint256 settlementFee)
         external
         returns (uint256 stakingAmount)
@@ -51,12 +77,11 @@ contract SettlementFeeDisbursal {
 
         // Incase the stakingAmount is 0
         if (stakingAmount > 0) {
-            uint256 treasuryAmount = (stakingAmount *
-                config.treasuryPercentage()) / 1e4;
-            uint256 blpStakingAmount = (stakingAmount *
-                config.blpStakingPercentage()) / 1e4;
-            uint256 bfrStakingAmount = (stakingAmount *
-                config.bfrStakingPercentage()) / 1e4;
+            uint256 treasuryAmount = (stakingAmount * treasuryPercentage) / 1e4;
+            uint256 blpStakingAmount = (stakingAmount * blpStakingPercentage) /
+                1e4;
+            uint256 bfrStakingAmount = (stakingAmount * bfrStakingPercentage) /
+                1e4;
             uint256 insuranceAmount = stakingAmount -
                 treasuryAmount -
                 blpStakingAmount -

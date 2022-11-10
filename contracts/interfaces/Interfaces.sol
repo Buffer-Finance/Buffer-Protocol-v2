@@ -237,12 +237,6 @@ interface IOptionsConfig {
         uint16 endMinute;
     }
 
-    event UpdateStakingFeePercentage(
-        uint16 treasuryPercentage,
-        uint16 blpStakingPercentage,
-        uint16 bfrStakingPercentage,
-        uint16 insuranceFundPercentage
-    );
     event UpdateMarketTime();
     event UpdateMaxPeriod(uint32 value);
     event UpdateOptionFeePerTxnLimitPercent(uint16 value);
@@ -275,20 +269,21 @@ interface IOptionsConfig {
     function minFee() external view returns (uint16);
 
     function optionFeePerTxnLimitPercent() external view returns (uint16);
-
-    function treasuryPercentage() external view returns (uint16);
-
-    function blpStakingPercentage() external view returns (uint16);
-
-    function bfrStakingPercentage() external view returns (uint16);
-
-    function insuranceFundPercentage() external view returns (uint16);
 }
 
 interface ISettlementFeeDisbursal {
-    function distributeSettlementFee(uint256 settlementFee)
-        external
-        returns (uint256 stakingAmount);
+    event DistributeSettlementFee(
+        uint256 treasuryFee,
+        uint256 blpStakingFee,
+        uint256 bfrStakingFee,
+        uint256 insuranceFee
+    );
+    event UpdateStakingFeePercentage(
+        uint16 treasuryPercentage,
+        uint16 blpStakingPercentage,
+        uint16 bfrStakingPercentage,
+        uint16 insuranceFundPercentage
+    );
 }
 
 interface ITraderNFT {
