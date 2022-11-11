@@ -99,6 +99,8 @@ class BinaryOptionTesting(object):
         self.router.setContractRegistry(self.tokenX_options.address, True)
         self.router.setInPrivateKeeperMode()
 
+        assert self.tokenX_options.assetPair() == "ETH_BTC", "Wrong pair"
+
     def verify_referrals(self):
         self.chain.snapshot()
 

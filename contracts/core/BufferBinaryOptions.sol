@@ -25,6 +25,7 @@ contract BufferBinaryOptions is
     uint16 public baseSettlementFeePercentageForAbove; // Factor of 1e2
     uint16 public baseSettlementFeePercentageForBelow; // Factor of 1e2
     uint16 public stepSize = 250; // Factor of 1e2
+    string public assetPair;
 
     ILiquidityPool public override pool;
     IOptionsConfig public override config;
@@ -48,12 +49,14 @@ contract BufferBinaryOptions is
         ILiquidityPool _pool,
         IOptionsConfig _config,
         IReferralStorage _referral,
-        AssetCategory _category
+        AssetCategory _category,
+        string memory _assetPair
     ) ERC721("Buffer", "BFR") {
         tokenX = _tokenX;
         pool = _pool;
         config = _config;
         referral = _referral;
+        assetPair = _assetPair;
         assetCategory = _category;
         _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
     }

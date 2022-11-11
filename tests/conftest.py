@@ -65,6 +65,7 @@ def contracts(
         binary_options_config_atm.address,
         referral_contract.address,
         1,
+        "ETH_BTC",
         {"from": accounts[0]},
     )
 
@@ -109,6 +110,7 @@ def contracts(
         binary_options_config_atm_2.address,
         referral_contract.address,
         1,
+        "ETH_BTC",
         {"from": accounts[0]},
     )
 
@@ -152,6 +154,7 @@ def contracts(
         binary_options_config_atm_3.address,
         referral_contract.address,
         0,
+        "ETH_BTC",
         {"from": accounts[0]},
     )
 
@@ -199,6 +202,7 @@ def contracts(
         bfr_binary_options_config_atm.address,
         referral_contract.address,
         1,
+        "ETH_BTC",
         {"from": accounts[0]},
     )
 
