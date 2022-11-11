@@ -15,3 +15,4 @@ compiler:
             runs: 1
         remappings:
             - "@openzeppelin=OpenZeppelin/openzeppelin-contracts@4.3.2"
+dotenv: .env
