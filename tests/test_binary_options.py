@@ -162,9 +162,6 @@ class BinaryOptionTesting(object):
         assert self.tokenX_options.hasRole(
             self.tokenX_options.DEFAULT_ADMIN_ROLE(), self.accounts[0]
         ), "The admin of the contract should be the account the contract was deployed by"
-        assert self.tokenX_options.hasRole(
-            self.router.BOT_ROLE(), self.bot
-        ), "The bot role should be with the bot account"
 
     def verify_option_states(
         self,

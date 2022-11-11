@@ -12,7 +12,6 @@ import "../interfaces/Interfaces.sol";
  * @notice Buffer Options Router Contract
  */
 contract BufferRouter is AccessControl, IBufferRouter {
-    bytes32 public constant BOT_ROLE = keccak256("BOT_ROLE");
     uint16 MAX_WAIT_TIME = 1 minutes;
     uint256 public nextQueueId = 0;
     address public publisher;

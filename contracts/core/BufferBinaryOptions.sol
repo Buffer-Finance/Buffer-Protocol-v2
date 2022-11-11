@@ -38,7 +38,6 @@ contract BufferBinaryOptions is
     mapping(uint8 => uint8) public nftTierStep;
 
     bytes32 public constant ROUTER_ROLE = keccak256("ROUTER_ROLE");
-    bytes32 public constant BOT_ROLE = keccak256("BOT_ROLE");
 
     /************************************************
      *  INITIALIZATION FUNCTIONS
