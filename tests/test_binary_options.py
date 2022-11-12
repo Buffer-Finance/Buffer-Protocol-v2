@@ -149,6 +149,14 @@ class BinaryOptionTesting(object):
         self.options_config.setMaxPeriod(86400)
         assert self.options_config.maxPeriod() == 86400
 
+        # minPeriod
+        with brownie.reverts("MinPeriod needs to be greater than 1 minutes"):
+            self.options_config.setMinPeriod(50)
+        with brownie.reverts():  # Wrong role
+            self.options_config.setMinPeriod(300, {"from": self.user_1})
+        self.options_config.setMinPeriod(300)
+        assert self.options_config.minPeriod() == 300
+
         with brownie.reverts():  # Wrong role
             self.options_config.transferOwnership(self.user_2, {"from": self.user_1})
         with brownie.reverts():  # Wrong address
