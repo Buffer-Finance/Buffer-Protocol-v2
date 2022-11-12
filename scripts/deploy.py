@@ -226,7 +226,5 @@ def main():
     ########### Flat Files ###########
 
     save_flat(BufferBinaryOptions, "BufferBinaryOptions")
-    # save_flat(OptionRouter, "OptionRouter")
-    # save_flat(OptionMeta, "OptionMeta")
-    # save_flat(SettlementFeeDisbursal, "SettlementFeeDisbursal")
-    # save_flat(OptionConfigBinaryV2, "OptionConfigBinaryV2")
+    save_flat(BufferRouter, "BufferRouter")
+    save_flat(BufferBinaryPool, "BufferBinaryPool")

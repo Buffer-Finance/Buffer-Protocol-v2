@@ -66,8 +66,8 @@ def main():
     router_contract_address = "0x767173fd3DD0A12df0f17D90A9810020d1c22A33"
     referral_storage_address = "0xB2AD3f7079b5E4DB460506C7d45F09BC10D60E13"
     options_address = "0x39DDC21420e8c721Cb880De9a218963393022381"  # ETH-BTC
-    # options_address = "0x1C1Bb44A1CF1566659B94a0615b8443fC6144368"  # BTC-BUSD
-    # options_address = "0x7cf2809e96de47A5FbAF92d1274e51827e9BdC4F"  # ETH-BUSD
+    options_address = "0x1C1Bb44A1CF1566659B94a0615b8443fC6144368"  # BTC-BUSD
+    options_address = "0x7cf2809e96de47A5FbAF92d1274e51827e9BdC4F"  # ETH-BUSD
 
     print(pool_admin, admin)
     print(pool_admin.balance() / 1e18, admin.balance() / 1e18)
@@ -79,51 +79,27 @@ def main():
     router_contract = BufferRouter.at(router_contract_address)
     options = BufferBinaryOptions.at(options_address)
 
-    token_contract.approve(
-        pool_address,
-        10000e6,
-        {"from": admin},
-    )
-    pool.provide(
-        1000e6,
-        0,
-        {"from": admin},
-    )
-    token_contract.transfer(user, 20e6, {"from": admin})
-    token_contract.approve(
-        router_contract_address,
-        100e6,
-        {"from": user},
-    )
-    for _ in range(2):
-        expected_strike = 1270e8
-        next_queue_id = router_contract.nextQueueId()
-        next_option_id = options.nextTokenId()
-        option_params = [
-            1e6,
-            3600,
-            True,
+    params = []
+    for id in range(5, 10):
+        option_data = options.options(id)
+        close_params = (
+            option_data[5],
             options.address,
-            expected_strike,
-            100,
-            True,
-            "",
-            0,
-        ]
+            option_data[1] - 1e8,
+        )
+        params.append(
+            (
+                id,
+                *close_params,
+                get_signature(
+                    *close_params,
+                    publisher_pk,
+                ),
+            )
+        )
 
-        router_contract.initiateTrade(
-            *option_params,
-            {"from": user},
-        )
-        queued_trade = router_contract.queuedTrades(next_queue_id)
-        open_params = [
-            queued_trade[10],
-            options.address,
-            expected_strike,
-        ]
-        txn = router_contract.resolveQueuedTrades(
-            [(next_queue_id, *open_params, get_signature(*open_params, publisher_pk))],
-            {"from": keeper},
-        )
-        print(options.options(next_option_id))
-        print(next_queue_id, next_option_id, txn.info())
+    txn = router_contract.unlockOptions(
+        params,
+        {"from": keeper},
+    )
+    print(txn.info())
