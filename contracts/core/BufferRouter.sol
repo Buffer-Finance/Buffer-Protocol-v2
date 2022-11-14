@@ -342,11 +342,14 @@ contract BufferRouter is AccessControl, IBufferRouter {
         optionParams.strike = price;
         optionParams.amount = amount;
 
-        optionsContract.createFromRouter(optionParams, isReferralValid);
+        uint256 optionId = optionsContract.createFromRouter(
+            optionParams,
+            isReferralValid
+        );
 
         queuedTrade.isQueued = false;
 
-        emit OpenTrade(queuedTrade.user, queueId);
+        emit OpenTrade(queuedTrade.user, queueId, optionId);
     }
 
     function _cancelQueuedTrade(uint256 queueId) internal {
