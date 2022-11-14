@@ -13,8 +13,8 @@ def deploy_contract(_from, network, contract, args):
         contract,
         *args,
         allow_revert=True,
-        publish_source=publish_source,
-        gas_limit=10000000,
+        publish_source=False,
+        gas_limit=100000000,
     )
 
     return deployed_contract

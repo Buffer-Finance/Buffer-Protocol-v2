@@ -61,15 +61,15 @@ def main():
         pool_admin = accounts.add(os.environ["POOL_PK"])
         admin = accounts.add(os.environ["BFR_PK"])
         publisher = "0x32A49a15F8eE598C1EeDc21138DEb23b391f425b"
-        keeper = accounts.add(os.environ["BFR_PK"])
+        keeper = "0x830448E989Affe0C17Cfcb6DDE58b49432aE9501"
         sfd = "0x32A49a15F8eE598C1EeDc21138DEb23b391f425b"
-        asset_pair = "ETH-BUSD"
-        asset_category = 1
+        asset_pair = "EUR-BUSD"
+        asset_category = 0
 
-        token_contract_address = "0x1d4242278c05b73B89E9483B87741Db2Ee866d54"
-        pool_address = "0x81905a9c020d9b395AbE71B9E22D5f3246D29045"
-        router_contract_address = "0x767173fd3DD0A12df0f17D90A9810020d1c22A33"
-        referral_storage_address = "0xB2AD3f7079b5E4DB460506C7d45F09BC10D60E13"
+        token_contract_address = "0xf6EDB295c08c59fea88d770cd3202BF4912667dC"
+        pool_address = "0x50B25Bf6f1a7e7edd16ae8841F34b221E31b5409"
+        router_contract_address = "0x233Da126e42037e6996F6243bd988568fb57B547"
+        referral_storage_address = "0x92Af01B06a17c26ffE64814Edf974dD9e12498a0"
 
     if network.show_active() == "arbitrum-main":
         allow_revert = True

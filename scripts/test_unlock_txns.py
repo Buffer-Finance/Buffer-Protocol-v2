@@ -61,13 +61,13 @@ def main():
         keeper = accounts.add(os.environ["BFR_PK"])
         user = accounts.add(publisher_pk)
 
-    token_contract_address = "0x1d4242278c05b73B89E9483B87741Db2Ee866d54"
-    pool_address = "0x81905a9c020d9b395AbE71B9E22D5f3246D29045"
-    router_contract_address = "0x767173fd3DD0A12df0f17D90A9810020d1c22A33"
-    referral_storage_address = "0xB2AD3f7079b5E4DB460506C7d45F09BC10D60E13"
-    options_address = "0x39DDC21420e8c721Cb880De9a218963393022381"  # ETH-BTC
-    options_address = "0x1C1Bb44A1CF1566659B94a0615b8443fC6144368"  # BTC-BUSD
-    options_address = "0x7cf2809e96de47A5FbAF92d1274e51827e9BdC4F"  # ETH-BUSD
+    token_contract_address = "0xf6EDB295c08c59fea88d770cd3202BF4912667dC"
+    pool_address = "0x50B25Bf6f1a7e7edd16ae8841F34b221E31b5409"
+    router_contract_address = "0x233Da126e42037e6996F6243bd988568fb57B547"
+    # options_address = "0x1297A832701E7ae7925b196080eA99242DF53C5d"  # EUR-BUSD
+    # options_address = "0x430FA5C50BDd956a1242b4CA1265875bE00e9cA6"  # ETH-BTC
+    # options_address = "0xd5d01849e028f5c7B69c9653D9EA01cB88A3B154"  # BTC-BUSD
+    options_address = "0x59A2D66B13168A52965a257007B1DFD7CA89cCA3"  # ETH-BUSD
 
     print(pool_admin, admin)
     print(pool_admin.balance() / 1e18, admin.balance() / 1e18)
@@ -79,13 +79,18 @@ def main():
     router_contract = BufferRouter.at(router_contract_address)
     options = BufferBinaryOptions.at(options_address)
 
+    router_contract.setKeeper(
+        admin,
+        True,
+        {"from": admin},
+    )
     params = []
-    for id in range(5, 10):
+    for id in range(0, 5):
         option_data = options.options(id)
         close_params = (
             option_data[5],
             options.address,
-            option_data[1] - 1e8,
+            option_data[1] + 1e8,
         )
         params.append(
             (
