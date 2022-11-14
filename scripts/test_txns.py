@@ -55,9 +55,7 @@ def main():
         pool_admin = accounts.add(os.environ["POOL_PK"])
         admin = accounts.add(os.environ["BFR_PK"])
         publisher = "0x32A49a15F8eE598C1EeDc21138DEb23b391f425b"
-        publisher_pk = (
-            "258bc07202e69bd79af9af8380e77a0142175b17f5401a6efd8f734c4e11d63c"
-        )
+        publisher_pk = os.environ["USER_PK"]
         keeper = accounts.add(os.environ["BFR_PK"])
         user = accounts.add(publisher_pk)
 
@@ -65,7 +63,8 @@ def main():
     pool_address = "0x81905a9c020d9b395AbE71B9E22D5f3246D29045"
     router_contract_address = "0x767173fd3DD0A12df0f17D90A9810020d1c22A33"
     referral_storage_address = "0xB2AD3f7079b5E4DB460506C7d45F09BC10D60E13"
-    options_address = "0x39DDC21420e8c721Cb880De9a218963393022381"  # ETH-BTC
+    options_address = "0xb5c2fAEeF541Da50448589272cd7ca2fDb06C339"  # EUR-BUSD
+    # options_address = "0x39DDC21420e8c721Cb880De9a218963393022381"  # ETH-BTC
     # options_address = "0x1C1Bb44A1CF1566659B94a0615b8443fC6144368"  # BTC-BUSD
     # options_address = "0x7cf2809e96de47A5FbAF92d1274e51827e9BdC4F"  # ETH-BUSD
 
@@ -78,31 +77,34 @@ def main():
     pool = BufferBinaryPool.at(pool_address)
     router_contract = BufferRouter.at(router_contract_address)
     options = BufferBinaryOptions.at(options_address)
-
-    token_contract.approve(
-        pool_address,
-        10000e6,
-        {"from": admin},
-    )
-    pool.provide(
-        1000e6,
-        0,
-        {"from": admin},
-    )
+    config_address = options.config()
+    config = OptionsConfig.at(config_address)
+    print(config)
+    # token_contract.approve(
+    #     pool_address,
+    #     10000e6,
+    #     {"from": admin},
+    # )
+    # pool.provide(
+    #     1000e6,
+    #     0,
+    #     {"from": admin},
+    # )
     token_contract.transfer(user, 20e6, {"from": admin})
     token_contract.approve(
         router_contract_address,
         100e6,
         {"from": user},
     )
-    for _ in range(2):
-        expected_strike = 1270e8
+
+    for _ in range(10):
+        expected_strike = 1.035e8
         next_queue_id = router_contract.nextQueueId()
         next_option_id = options.nextTokenId()
         option_params = [
             1e6,
             3600,
-            True,
+            False,
             options.address,
             expected_strike,
             100,
@@ -127,3 +129,5 @@ def main():
         )
         print(options.options(next_option_id))
         print(next_queue_id, next_option_id, txn.info())
+
+    save_flat(OptionsConfig, "OptionsConfig")
