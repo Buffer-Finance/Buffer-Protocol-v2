@@ -61,7 +61,7 @@ interface IBufferRouter {
         uint256 priceAtExpiry;
         bytes signature;
     }
-    event OpenTrade(address indexed account, uint256 queueId);
+    event OpenTrade(address indexed account, uint256 queueId, uint256 optionId);
     event CancelTrade(address indexed account, uint256 queueId, string reason);
     event FailUnlock(uint256 optionId, string reason);
     event FailResolve(uint256 queueId, string reason);
