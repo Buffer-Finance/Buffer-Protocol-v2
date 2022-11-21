@@ -50,14 +50,13 @@ interface IBufferRouter {
     struct OpenTradeParams {
         uint256 queueId;
         uint256 timestamp;
-        address asset;
         uint256 price;
         bytes signature;
     }
     struct CloseTradeParams {
         uint256 optionId;
+        address targetContract;
         uint256 expiryTimestamp;
-        address asset;
         uint256 priceAtExpiry;
         bytes signature;
     }
@@ -131,6 +130,8 @@ interface IBufferBinaryOptions {
     function pool() external view returns (ILiquidityPool);
 
     function config() external view returns (IOptionsConfig);
+
+    function assetPair() external view returns (string calldata);
 
     enum State {
         Inactive,

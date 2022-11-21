@@ -2,6 +2,7 @@ import time
 from enum import IntEnum
 
 import brownie
+from brownie import BufferBinaryOptions
 from eth_account import Account
 from eth_account.messages import encode_defunct
 
@@ -221,14 +222,15 @@ class BinaryOptionTesting(object):
             and sfd_diff == expected_settlement_fee
         ), "Wrong settlementFee"
 
-    def get_signature(self, timestamp, token, price, publisher=None):
+    def get_signature(self, token, timestamp, price, publisher=None):
         # timestamp = 1667208839
         # token = "0x32A49a15F8eE598C1EeDc21138DEb23b391f425b"
         # price = int(83e8)
         web3 = brownie.network.web3
         key = self.publisher.private_key if not publisher else publisher.private_key
         msg_hash = web3.solidityKeccak(
-            ["uint256", "address", "uint256"], [timestamp, token, int(price)]
+            ["string", "uint256", "uint256"],
+            [BufferBinaryOptions.at(token).assetPair(), timestamp, int(price)],
         )
         signed_message = Account.sign_message(encode_defunct(msg_hash), key)
 
@@ -280,7 +282,6 @@ class BinaryOptionTesting(object):
         queued_trade = self.router.queuedTrades(next_id)
         open_params_1 = [
             queued_trade[10],
-            self.forex_option.address,
             self.expected_strike,
         ]
         txn = self.router.resolveQueuedTrades(
@@ -289,13 +290,13 @@ class BinaryOptionTesting(object):
                     next_id,
                     *open_params_1,
                     self.get_signature(
+                        self.forex_option.address,
                         *open_params_1,
                     ),
                 ),
             ],
             {"from": self.bot},
         )
-
         assert (
             txn.events["CancelTrade"] and txn.events["CancelTrade"]["reason"] == "O30"
         )
@@ -324,7 +325,6 @@ class BinaryOptionTesting(object):
         queued_trade = self.router.queuedTrades(next_id)
         open_params_1 = [
             queued_trade[10],
-            self.forex_option.address,
             self.expected_strike,
         ]
         txn = self.router.resolveQueuedTrades(
@@ -333,6 +333,7 @@ class BinaryOptionTesting(object):
                     next_id,
                     *open_params_1,
                     self.get_signature(
+                        self.forex_option.address,
                         *open_params_1,
                     ),
                 ),
@@ -366,7 +367,6 @@ class BinaryOptionTesting(object):
         queued_trade = self.router.queuedTrades(next_id)
         open_params_1 = [
             queued_trade[10],
-            self.forex_option.address,
             self.expected_strike,
         ]
         txn = self.router.resolveQueuedTrades(
@@ -375,6 +375,7 @@ class BinaryOptionTesting(object):
                     next_id,
                     *open_params_1,
                     self.get_signature(
+                        self.forex_option.address,
                         *open_params_1,
                     ),
                 ),
@@ -403,7 +404,6 @@ class BinaryOptionTesting(object):
         queued_trade = self.router.queuedTrades(next_id)
         open_params_1 = [
             queued_trade[10],
-            self.forex_option.address,
             self.expected_strike,
         ]
         txn = self.router.resolveQueuedTrades(
@@ -412,6 +412,7 @@ class BinaryOptionTesting(object):
                     next_id,
                     *open_params_1,
                     self.get_signature(
+                        self.forex_option.address,
                         *open_params_1,
                     ),
                 ),
@@ -435,7 +436,6 @@ class BinaryOptionTesting(object):
         queued_trade = self.router.queuedTrades(next_id)
         open_params_1 = [
             queued_trade[10],
-            self.forex_option.address,
             self.expected_strike,
         ]
         txn = self.router.resolveQueuedTrades(
@@ -444,6 +444,7 @@ class BinaryOptionTesting(object):
                     next_id,
                     *open_params_1,
                     self.get_signature(
+                        self.forex_option.address,
                         *open_params_1,
                     ),
                 ),
@@ -486,7 +487,6 @@ class BinaryOptionTesting(object):
         queued_trade = self.router.queuedTrades(next_id)
         open_params_1 = [
             queued_trade[10],
-            self.forex_option.address,
             self.expected_strike,
         ]
         txn = self.router.resolveQueuedTrades(
@@ -495,6 +495,7 @@ class BinaryOptionTesting(object):
                     next_id,
                     *open_params_1,
                     self.get_signature(
+                        self.forex_option.address,
                         *open_params_1,
                     ),
                 ),
@@ -521,7 +522,6 @@ class BinaryOptionTesting(object):
         queued_trade = self.router.queuedTrades(next_id)
         open_params_1 = [
             queued_trade[10],
-            self.forex_option.address,
             self.expected_strike,
         ]
         txn = self.router.resolveQueuedTrades(
@@ -530,6 +530,7 @@ class BinaryOptionTesting(object):
                     next_id,
                     *open_params_1,
                     self.get_signature(
+                        self.forex_option.address,
                         *open_params_1,
                     ),
                 ),
@@ -553,7 +554,6 @@ class BinaryOptionTesting(object):
         queued_trade = self.router.queuedTrades(next_id)
         open_params_1 = [
             queued_trade[10],
-            self.forex_option.address,
             self.expected_strike,
         ]
         txn = self.router.resolveQueuedTrades(
@@ -562,6 +562,7 @@ class BinaryOptionTesting(object):
                     next_id,
                     *open_params_1,
                     self.get_signature(
+                        self.forex_option.address,
                         *open_params_1,
                     ),
                 ),
@@ -621,7 +622,6 @@ class BinaryOptionTesting(object):
         queued_trade = self.router.queuedTrades(queue_id)
         open_params_1 = [
             queued_trade[10],
-            self.tokenX_options.address,
             396e8,
         ]
 
@@ -631,6 +631,7 @@ class BinaryOptionTesting(object):
                     queue_id,
                     *open_params_1,
                     self.get_signature(
+                        self.tokenX_options.address,
                         *open_params_1,
                     ),
                 ),
@@ -700,7 +701,6 @@ class BinaryOptionTesting(object):
         queued_trade = self.router.queuedTrades(0)
         open_params_1 = [
             queued_trade[10],
-            self.tokenX_options.address,
             396e8,
         ]
         txn = self.router.resolveQueuedTrades(
@@ -709,6 +709,7 @@ class BinaryOptionTesting(object):
                     0,
                     *open_params_1,
                     self.get_signature(
+                        self.tokenX_options.address,
                         *open_params_1,
                     ),
                 ),
@@ -766,7 +767,6 @@ class BinaryOptionTesting(object):
         queued_trade = self.router.queuedTrades(1)
         open_params_1 = [
             queued_trade[10],
-            self.tokenX_options.address,
             396e8,
         ]
         txn = self.router.resolveQueuedTrades(
@@ -775,6 +775,7 @@ class BinaryOptionTesting(object):
                     1,
                     *open_params_1,
                     self.get_signature(
+                        self.tokenX_options.address,
                         *open_params_1,
                     ),
                 ),
@@ -808,7 +809,6 @@ class BinaryOptionTesting(object):
         queued_trade = self.router.queuedTrades(2)
         open_params_1 = [
             queued_trade[10],
-            self.tokenX_options.address,
             396e8,
         ]
         txn = self.router.resolveQueuedTrades(
@@ -817,6 +817,7 @@ class BinaryOptionTesting(object):
                     2,
                     *open_params_1,
                     self.get_signature(
+                        self.tokenX_options.address,
                         *open_params_1,
                     ),
                 ),
@@ -867,7 +868,6 @@ class BinaryOptionTesting(object):
         queued_trade = self.router.queuedTrades(3)
         open_params_1 = [
             queued_trade[10],
-            self.tokenX_options.address,
             396e8,
         ]
         txn = self.router.resolveQueuedTrades(
@@ -876,6 +876,7 @@ class BinaryOptionTesting(object):
                     3,
                     *open_params_1,
                     self.get_signature(
+                        self.tokenX_options.address,
                         *open_params_1,
                     ),
                 ),
@@ -962,7 +963,6 @@ class BinaryOptionTesting(object):
         queued_trade = self.router.queuedTrades(0)
         open_params_1 = [
             queued_trade[10],
-            self.tokenX_options.address,
             396e8,
         ]
         txn = self.router.resolveQueuedTrades(
@@ -971,6 +971,7 @@ class BinaryOptionTesting(object):
                     0,
                     *open_params_1,
                     self.get_signature(
+                        self.tokenX_options.address,
                         *open_params_1,
                     ),
                 ),
@@ -1062,7 +1063,6 @@ class BinaryOptionTesting(object):
         queued_trade = self.router.queuedTrades(0)
         open_params_1 = [
             queued_trade[10],
-            self.tokenX_options.address,
             396e8,
         ]
         txn = self.router.resolveQueuedTrades(
@@ -1071,6 +1071,7 @@ class BinaryOptionTesting(object):
                     0,
                     *open_params_1,
                     self.get_signature(
+                        self.tokenX_options.address,
                         *open_params_1,
                     ),
                 ),
@@ -1146,7 +1147,6 @@ class BinaryOptionTesting(object):
         queued_trade = self.router.queuedTrades(next_id)
         open_params_1 = [
             queued_trade[10],
-            self.tokenX_options.address,
             396e8,
         ]
         txn = self.router.resolveQueuedTrades(
@@ -1155,6 +1155,7 @@ class BinaryOptionTesting(object):
                     next_id,
                     *open_params_1,
                     self.get_signature(
+                        self.tokenX_options.address,
                         *open_params_1,
                     ),
                 ),
@@ -1222,7 +1223,6 @@ class BinaryOptionTesting(object):
         queued_trade = self.router.queuedTrades(4)
         open_params_1 = [
             queued_trade[10],
-            self.tokenX_options.address,
             400e8,
         ]
         txn = self.router.resolveQueuedTrades(
@@ -1231,6 +1231,7 @@ class BinaryOptionTesting(object):
                     4,
                     *open_params_1,
                     self.get_signature(
+                        self.tokenX_options.address,
                         *open_params_1,
                     ),
                 ),
@@ -1299,7 +1300,6 @@ class BinaryOptionTesting(object):
         queued_trade = self.router.queuedTrades(6)
         open_params_1 = [
             queued_trade[10],
-            self.tokenX_options.address,
             400e8,
         ]
         txn = self.router.resolveQueuedTrades(
@@ -1308,6 +1308,7 @@ class BinaryOptionTesting(object):
                     6,
                     *open_params_1,
                     self.get_signature(
+                        self.tokenX_options.address,
                         *open_params_1,
                     ),
                 ),
@@ -1358,7 +1359,6 @@ class BinaryOptionTesting(object):
         queued_trade = self.router.queuedTrades(5)
         open_params_1 = [
             queued_trade[10],
-            self.tokenX_options.address,
             400e8,
         ]
         txn = self.router.resolveQueuedTrades(
@@ -1367,6 +1367,7 @@ class BinaryOptionTesting(object):
                     5,
                     *open_params_1,
                     self.get_signature(
+                        self.tokenX_options.address,
                         *open_params_1,
                     ),
                 ),
@@ -1384,7 +1385,7 @@ class BinaryOptionTesting(object):
         params = []
         for option in options:
             option_data = self.tokenX_options.options(option[0])
-            close_params = (option_data[5], self.tokenX_options.address, option[1])
+            close_params = (self.tokenX_options.address, option_data[5], option[1])
             params.append(
                 (
                     option[0],
@@ -1585,25 +1586,21 @@ class BinaryOptionTesting(object):
         queued_trade = self.router.queuedTrades(next_id)
         open_params_1 = [
             queued_trade[10],
-            self.tokenX_options.address,
             self.expected_strike,
         ]
         queued_trade = self.router.queuedTrades(next_id + 1)
         open_params_2 = [
             queued_trade[10],
-            self.tokenX_options.address,
             self.expected_strike,
         ]
         queued_trade = self.router.queuedTrades(next_id + 2)
         open_params_3 = [
             queued_trade[10],
-            self.tokenX_options.address,
             self.expected_strike,
         ]
         queued_trade = self.router.queuedTrades(next_id + 3)
         open_params_4 = [
             queued_trade[10],
-            self.tokenX_options.address,
             self.expected_strike,
         ]
         txn = self.router.resolveQueuedTrades(
@@ -1612,6 +1609,7 @@ class BinaryOptionTesting(object):
                     next_id,
                     *open_params_1,
                     self.get_signature(
+                        self.tokenX_options.address,
                         *open_params_1,
                     ),
                 ),
@@ -1619,6 +1617,7 @@ class BinaryOptionTesting(object):
                     next_id + 1,
                     *open_params_2,
                     self.get_signature(
+                        self.tokenX_options.address,
                         *open_params_2,
                     ),
                 ),
@@ -1626,6 +1625,7 @@ class BinaryOptionTesting(object):
                     next_id + 2,
                     *open_params_3,
                     self.get_signature(
+                        self.tokenX_options.address,
                         *open_params_3,
                     ),
                 ),
@@ -1633,6 +1633,7 @@ class BinaryOptionTesting(object):
                     next_id + 3,
                     *open_params_4,
                     self.get_signature(
+                        self.tokenX_options.address,
                         *open_params_4,
                     ),
                 ),
@@ -1684,7 +1685,6 @@ class BinaryOptionTesting(object):
         queued_trade = self.router.queuedTrades(next_id)
         open_params_2 = [
             queued_trade[10],
-            self.tokenX_options.address,
             self.expected_strike,
         ]
         txn = self.router.resolveQueuedTrades(
@@ -1693,6 +1693,7 @@ class BinaryOptionTesting(object):
                     next_id,
                     *open_params_2,
                     self.get_signature(
+                        self.tokenX_options.address,
                         *open_params_2,
                     ),
                 )
@@ -1720,7 +1721,6 @@ class BinaryOptionTesting(object):
         queued_trade = self.router.queuedTrades(next_id)
         open_params_2 = [
             queued_trade[10],
-            self.tokenX_options.address,
             self.expected_strike,
         ]
         txn = self.router.resolveQueuedTrades(
@@ -1729,6 +1729,7 @@ class BinaryOptionTesting(object):
                     next_id,
                     *open_params_2,
                     self.get_signature(
+                        self.tokenX_options.address,
                         *open_params_2,
                     ),
                 )
@@ -1797,7 +1798,6 @@ class BinaryOptionTesting(object):
         queued_trade = self.router.queuedTrades(next_id)
         open_params_2 = [
             queued_trade[10],
-            self.tokenX_options.address,
             self.expected_strike,
         ]
         txn = self.router.resolveQueuedTrades(
@@ -1806,6 +1806,7 @@ class BinaryOptionTesting(object):
                     next_id,
                     *open_params_2,
                     self.get_signature(
+                        self.tokenX_options.address,
                         *open_params_2,
                     ),
                 )
