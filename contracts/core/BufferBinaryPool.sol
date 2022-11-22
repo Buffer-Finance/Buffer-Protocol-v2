@@ -348,7 +348,9 @@ contract BufferBinaryPool is
                 "Pool: Transfer of funds in lock in period is blocked"
             );
             liquidityPerUser[from].unlockedAmount -= value;
-            liquidityPerUser[to].unlockedAmount += value;
+            if (to != address(0)) {
+                liquidityPerUser[to].unlockedAmount += value;
+            }
         }
     }
 
