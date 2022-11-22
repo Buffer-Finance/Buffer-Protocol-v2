@@ -194,13 +194,13 @@ contract BufferBinaryPool is
         require(ll.locked, "Pool: lockedAmount is already unlocked");
         require(to != address(0));
 
-        ll.locked = false;
-        lockedPremium = lockedPremium - ll.premium;
-        lockedAmount = lockedAmount - ll.amount;
-
         uint256 transferTokenXAmount = tokenXAmount > ll.amount
             ? ll.amount
             : tokenXAmount;
+
+        ll.locked = false;
+        lockedPremium = lockedPremium - ll.premium;
+        lockedAmount = lockedAmount - transferTokenXAmount;
 
         bool success = tokenX.transfer(to, transferTokenXAmount);
         require(success, "Pool: The Payout transfer didn't go through");

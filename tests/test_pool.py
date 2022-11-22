@@ -118,10 +118,8 @@ def test_binary_pool(contracts, accounts, chain):
     with brownie.reverts(
         "Pool: Not enough funds on the pool contract. Please lower the amount."
     ):
-        binary_pool_atm.withdraw(tokenX_amount_1*100, {"from": user_1})
-    with brownie.reverts(
-        "Pool: Amount is too small"
-    ):
+        binary_pool_atm.withdraw(tokenX_amount_1 * 100, {"from": user_1})
+    with brownie.reverts("Pool: Amount is too small"):
         binary_pool_atm.withdraw(0, {"from": user_1})
 
     with brownie.reverts("Pool: Amount is too small"):
@@ -149,8 +147,7 @@ def test_binary_pool(contracts, accounts, chain):
     with brownie.reverts(
         "Pool: Withdrawal amount is greater than current unlocked amount"
     ):
-        binary_pool_atm.withdraw(
-            binary_pool_atm.availableBalance(), {"from": user_1})
+        binary_pool_atm.withdraw(binary_pool_atm.availableBalance(), {"from": user_1})
 
     binary_pool_atm.withdraw(
         liquidity_per_user[0] / binary_pool_atm.INITIAL_RATE(),
@@ -159,30 +156,25 @@ def test_binary_pool(contracts, accounts, chain):
     liquidity_per_user = binary_pool_atm.liquidityPerUser(user_1)
 
     assert (
-        liquidity_per_user[0] == 0 == binary_pool_atm.getUnlockedLiquidity(
-            user_1)
+        liquidity_per_user[0] == 0 == binary_pool_atm.getUnlockedLiquidity(user_1)
     ), "Unlocked amount should be 0"
     assert liquidity_per_user[1] == 1, "Latest index should be 1"
 
     ############ Should verify buying using handler ############
 
     with brownie.reverts("Pool: forbidden"):
-        binary_pool_atm.provideForAccount(
-            tokenX_amount_1, 0, user_1, {"from": user_1})
+        binary_pool_atm.provideForAccount(tokenX_amount_1, 0, user_1, {"from": user_1})
 
     with brownie.reverts("Pool: forbidden"):
-        binary_pool_atm.provideForAccount(
-            tokenX_amount_1, 0, user_1, {"from": owner})
+        binary_pool_atm.provideForAccount(tokenX_amount_1, 0, user_1, {"from": owner})
 
     with brownie.reverts():  # Wrong role
         binary_pool_atm.setHandler(handler, True, {"from": user_1})
 
     binary_pool_atm.setHandler(handler, True, {"from": owner})
     tokenX.transfer(user_2, tokenX_amount_1 / 3, {"from": owner})
-    tokenX.approve(binary_pool_atm.address,
-                   tokenX_amount_1 / 3, {"from": user_2})
-    binary_pool_atm.provideForAccount(
-        tokenX_amount_1 / 3, 0, user_2, {"from": handler})
+    tokenX.approve(binary_pool_atm.address, tokenX_amount_1 / 3, {"from": user_2})
+    binary_pool_atm.provideForAccount(tokenX_amount_1 / 3, 0, user_2, {"from": handler})
 
     assert binary_pool_atm.balanceOf(user_2) == expected_mint, "Wrong mint"
 
@@ -194,8 +186,7 @@ def test_binary_pool(contracts, accounts, chain):
     _balance = binary_pool_atm.balanceOf(user_1) // 2
 
     with brownie.reverts("Pool: transfer amount exceeds allowance"):
-        binary_pool_atm.transferFrom(
-            user_1, user_3, _balance, {"from": user_2})
+        binary_pool_atm.transferFrom(user_1, user_3, _balance, {"from": user_2})
 
     binary_pool_atm.approve(user_2, _balance, {"from": user_1})
     binary_pool_atm.transferFrom(user_1, user_3, _balance, {"from": user_2})
@@ -213,32 +204,27 @@ def test_binary_pool(contracts, accounts, chain):
 
     amount_to_transfer = binary_pool_atm.balanceOf(user_2)
     with brownie.reverts("Pool: transfer amount exceeds allowance"):
-        binary_pool_atm.transferFrom(
-            user_2, user_1, expected_mint, {"from": user_1})
+        binary_pool_atm.transferFrom(user_2, user_1, expected_mint, {"from": user_1})
 
     binary_pool_atm.approve(user_1, expected_mint, {"from": user_2})
 
     with brownie.reverts("Pool: Transfer of funds in lock in period is blocked"):
-        binary_pool_atm.transferFrom(
-            user_2, user_1, expected_mint, {"from": handler})
+        binary_pool_atm.transferFrom(user_2, user_1, expected_mint, {"from": handler})
 
-    binary_pool_atm.transferFrom(
-        user_2, handler,  amount_to_transfer, {"from": user_1})
+    binary_pool_atm.transferFrom(user_2, handler, amount_to_transfer, {"from": user_1})
 
     assert binary_pool_atm.balanceOf(user_2) == 0, "Wrong balance"
-    assert binary_pool_atm.balanceOf(
-        handler) == amount_to_transfer, "Wrong balance"
+    assert binary_pool_atm.balanceOf(handler) == amount_to_transfer, "Wrong balance"
 
     chain.snapshot()
 
     handler_amount_to_transfer = binary_pool_atm.balanceOf(handler)
-    binary_pool_atm.transfer(
-        user_2,  handler_amount_to_transfer, {"from": handler})
+    binary_pool_atm.transfer(user_2, handler_amount_to_transfer, {"from": handler})
 
-    assert binary_pool_atm.balanceOf(
-        user_2) == handler_amount_to_transfer, "Wrong balance"
-    assert binary_pool_atm.balanceOf(
-        handler) == 0, "Wrong balance"
+    assert (
+        binary_pool_atm.balanceOf(user_2) == handler_amount_to_transfer
+    ), "Wrong balance"
+    assert binary_pool_atm.balanceOf(handler) == 0, "Wrong balance"
 
     chain.revert()
 
@@ -249,8 +235,7 @@ def test_binary_pool(contracts, accounts, chain):
 
     for id in lock_ids:
         with brownie.reverts():  # Wrong role
-            binary_pool_atm.lock(id, tokenX_amount_3,
-                                 tokenX_amount_2, {"from": user_1})
+            binary_pool_atm.lock(id, tokenX_amount_3, tokenX_amount_2, {"from": user_1})
 
         _supply = binary_pool_atm.totalSupply()
         _totalTokenXBalance = binary_pool_atm.totalTokenXBalance()
@@ -268,19 +253,17 @@ def test_binary_pool(contracts, accounts, chain):
             )
 
         with brownie.reverts("ERC20: transfer amount exceeds allowance"):
-            binary_pool_atm.lock(id, tokenX_amount_3,
-                                 tokenX_amount_2, {"from": user_2})
+            binary_pool_atm.lock(id, tokenX_amount_3, tokenX_amount_2, {"from": user_2})
 
         initial_tokenX_balance_options = tokenX.balanceOf(user_2)
         initial_tokenX_balance_lp = tokenX.balanceOf(binary_pool_atm.address)
 
-        tokenX.approve(binary_pool_atm.address,
-                       tokenX_amount_1, {"from": user_2})
-        with brownie.reverts('Pool: Wrong id'):
-            binary_pool_atm.lock(id + 1, tokenX_amount_3,
-                                 tokenX_amount_2, {"from": user_2})
-        binary_pool_atm.lock(
-            id, lock_amount, tokenX_amount_2, {"from": user_2})
+        tokenX.approve(binary_pool_atm.address, tokenX_amount_1, {"from": user_2})
+        with brownie.reverts("Pool: Wrong id"):
+            binary_pool_atm.lock(
+                id + 1, tokenX_amount_3, tokenX_amount_2, {"from": user_2}
+            )
+        binary_pool_atm.lock(id, lock_amount, tokenX_amount_2, {"from": user_2})
 
         final_tokenX_balance_options = tokenX.balanceOf(user_2)
         final_tokenX_balance_lp = tokenX.balanceOf(binary_pool_atm.address)
@@ -322,34 +305,31 @@ def test_binary_pool(contracts, accounts, chain):
 
         if expected_payout > ll["premium"]:
             assert (
-                send.events["Loss"]["amount"] == expected_payout -
-                ll["premium"]
+                send.events["Loss"]["amount"] == expected_payout - ll["premium"]
             ), "Wrong loss amount"
         else:
             assert (
-                send.events["Profit"]["amount"] == ll["premium"] -
-                expected_payout
+                send.events["Profit"]["amount"] == ll["premium"] - expected_payout
             ), "Wrong profit amount"
 
         assert final_ll["locked"] == False, "Wrong state"
         assert (
             initial_locked_premimum - final_locked_premimum == ll["premium"]
         ), "Wrong lockedPremium"
-        assert (
-            initial_locked_liquidity - final_locked_liquidity == ll["amount"]
+        assert initial_locked_liquidity - final_locked_liquidity == min(
+            payout, ll["amount"]
         ), "Wrong lockedAmount"
         assert (
             final_tokenX_balance_user - initial_tokenX_balance_user
         ) == expected_payout, "Wrong user balance"
 
-        with brownie.reverts('Pool: lockedAmount is already unlocked'):
+        with brownie.reverts("Pool: lockedAmount is already unlocked"):
             binary_pool_atm.send(id, user_1, payout, {"from": user_2})
         chain.revert()
 
     payouts = [int(lock_amount * 0.95), int(lock_amount * 1.05)]
     with brownie.reverts():  # Wrong role
-        binary_pool_atm.send(lock_ids[0], user_1,
-                             tokenX_amount_3, {"from": user_1})
+        binary_pool_atm.send(lock_ids[0], user_1, tokenX_amount_3, {"from": user_1})
     for index, id in enumerate(lock_ids):
         test_send(payouts[index], id)
 
@@ -370,12 +350,11 @@ def test_binary_pool(contracts, accounts, chain):
         assert (
             lockedPremium - final_lockedPremium == ll["premium"]
         ), "Wrong lockedPremium"
-        assert lockedAmount - \
-            final_lockedAmount == ll["amount"], "Wrong lockedAmount"
+        assert lockedAmount - final_lockedAmount == ll["amount"], "Wrong lockedAmount"
         assert unlock.events["Profit"]["amount"] == ll["premium"], "Wrong premium"
         assert final_ll["locked"] == False, "Wrong state"
 
-    with brownie.reverts('Pool: lockedAmount is already unlocked'):
+    with brownie.reverts("Pool: lockedAmount is already unlocked"):
         unlock = binary_pool_atm.unlock(1, {"from": user})
 
     assert binary_pool_atm.lockedAmount() == 0, "Wrong value"
