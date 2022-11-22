@@ -14,7 +14,7 @@ reports:
         - ECDSA
 
 dependencies:
-    - OpenZeppelin/openzeppelin-contracts@4.3.2
+    - OpenZeppelin/openzeppelin-contracts@4.7.3
 compiler:
     evm_version: istanbul
     solc:
@@ -23,4 +23,4 @@ compiler:
             enabled: true
             runs: 1
         remappings:
-            - "@openzeppelin=OpenZeppelin/openzeppelin-contracts@4.3.2"
+            - "@openzeppelin=OpenZeppelin/openzeppelin-contracts@4.7.3"
