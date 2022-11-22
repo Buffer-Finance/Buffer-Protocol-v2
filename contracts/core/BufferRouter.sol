@@ -331,14 +331,16 @@ contract BufferRouter is AccessControl, IBufferRouter {
 
         // Transfer the fee to the target options contract
         IERC20 tokenX = IERC20(optionsContract.tokenX());
-        tokenX.transfer(queuedTrade.targetContract, revisedFee);
+        bool success = tokenX.transfer(queuedTrade.targetContract, revisedFee);
+        require(success, "Transfer didn't go through");
 
         // Refund the user in case the trade amount was lesser
         if (revisedFee < queuedTrade.totalFee) {
-            tokenX.transfer(
+            success = tokenX.transfer(
                 queuedTrade.user,
                 queuedTrade.totalFee - revisedFee
             );
+            require(success, "Transfer didn't go through");
         }
 
         optionParams.totalFee = revisedFee;
@@ -361,11 +363,12 @@ contract BufferRouter is AccessControl, IBufferRouter {
             queuedTrade.targetContract
         );
         queuedTrade.isQueued = false;
-        IERC20(optionsContract.tokenX()).transfer(
+        bool success = IERC20(optionsContract.tokenX()).transfer(
             queuedTrade.user,
             queuedTrade.totalFee
         );
 
+        require(success, "Transfer didn't go through");
         userCancelledQueuedIds[queuedTrade.user].push(queueId);
     }
 }
