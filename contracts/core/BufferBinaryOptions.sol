@@ -492,7 +492,7 @@ contract BufferBinaryOptions is
                     isReferralValid,
                     totalFee,
                     referrerFee,
-                    ((formerUnitFee * amount) - totalFee),
+                    (((formerUnitFee * amount) / 10**decimals()) - totalFee),
                     referralCode
                 );
             }
