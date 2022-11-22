@@ -359,3 +359,11 @@ def test_binary_pool(contracts, accounts, chain):
 
     assert binary_pool_atm.lockedAmount() == 0, "Wrong value"
     assert binary_pool_atm.lockedPremium() == 0, "Wrong value"
+
+    with brownie.reverts("Invalid new maxLiquidity"):  # Wrong role
+        binary_pool_atm.setMaxLiquidity(
+            binary_pool_atm.totalTokenXBalance(), {"from": owner}
+        )
+    binary_pool_atm.setMaxLiquidity(
+        binary_pool_atm.totalTokenXBalance() + 1e6, {"from": owner}
+    )

@@ -61,6 +61,10 @@ contract BufferBinaryPool is
         external
         onlyRole(DEFAULT_ADMIN_ROLE)
     {
+        require(
+            _maxLiquidity > totalTokenXBalance(),
+            "Invalid new maxLiquidity"
+        );
         maxLiquidity = _maxLiquidity;
         emit UpdateMaxLiquidity(_maxLiquidity);
     }
