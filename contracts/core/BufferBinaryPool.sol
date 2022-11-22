@@ -20,7 +20,7 @@ contract BufferBinaryPool is
     ERC20 public tokenX;
     uint16 public constant ACCURACY = 1e3;
     uint32 public constant INITIAL_RATE = 1;
-    uint32 public lockupPeriod = 10 minutes;
+    uint32 public lockupPeriod;
     uint256 public lockedAmount;
     uint256 public lockedPremium;
     uint256 public maxLiquidity;
@@ -32,10 +32,11 @@ contract BufferBinaryPool is
     mapping(address => bool) public isHandler;
     mapping(address => ProvidedLiquidity) public liquidityPerUser;
 
-    constructor(ERC20 _tokenX) {
+    constructor(ERC20 _tokenX, uint32 _lockupPeriod) {
         tokenX = _tokenX;
         owner = msg.sender;
         maxLiquidity = 5000000 * 10**_tokenX.decimals();
+        lockupPeriod = _lockupPeriod;
         _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
     }
 

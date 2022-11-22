@@ -40,7 +40,9 @@ def contracts(
     sfd = accounts.add()
     tokenX = USDC.deploy({"from": accounts[0]})
 
-    binary_pool_atm = BufferBinaryPool.deploy(tokenX.address, {"from": accounts[0]})
+    binary_pool_atm = BufferBinaryPool.deploy(
+        tokenX.address, 600, {"from": accounts[0]}
+    )
     OPTION_ISSUER_ROLE = binary_pool_atm.OPTION_ISSUER_ROLE()
     router = BufferRouter.deploy(publisher, {"from": accounts[0]})
     trader_nft = TraderNFT.deploy(accounts[9], {"from": accounts[0]})
@@ -169,7 +171,9 @@ def contracts(
 
     print("############### Deploying BFR pool contracts #################")
 
-    bfr_pool_atm = BufferBinaryPool.deploy(ibfr_contract.address, {"from": accounts[0]})
+    bfr_pool_atm = BufferBinaryPool.deploy(
+        ibfr_contract.address, 600, {"from": accounts[0]}
+    )
 
     bfr_binary_options_config_atm = OptionsConfig.deploy(
         bfr_pool_atm.address,
