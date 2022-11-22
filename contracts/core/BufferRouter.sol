@@ -331,6 +331,8 @@ contract BufferRouter is AccessControl, IBufferRouter {
             return;
         }
 
+        queuedTrade.isQueued = false;
+
         // Transfer the fee to the target options contract
         IERC20 tokenX = IERC20(optionsContract.tokenX());
         bool success = tokenX.transfer(queuedTrade.targetContract, revisedFee);
@@ -353,8 +355,6 @@ contract BufferRouter is AccessControl, IBufferRouter {
             optionParams,
             isReferralValid
         );
-
-        queuedTrade.isQueued = false;
 
         emit OpenTrade(queuedTrade.user, queueId, optionId);
     }
