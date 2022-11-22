@@ -15,12 +15,10 @@ contract BufferRouter is AccessControl, IBufferRouter {
     uint16 MAX_WAIT_TIME = 1 minutes;
     uint256 public nextQueueId = 0;
     address public publisher;
-    uint256 public nextQueueIdToProcess = 0;
     bool public isInPrivateKeeperMode = true;
 
     mapping(address => uint256[]) public userQueuedIds;
     mapping(address => uint256[]) public userCancelledQueuedIds;
-    mapping(address => uint256) public userNextQueueIndexToProcess;
     mapping(uint256 => QueuedTrade) public queuedTrades;
     mapping(address => bool) public contractRegistry;
     mapping(address => bool) public isKeeper;
@@ -179,14 +177,7 @@ contract BufferRouter is AccessControl, IBufferRouter {
                     "Wait time too high"
                 );
             }
-
-            // Track the next queueIndex to be processed for user
-            userNextQueueIndexToProcess[queuedTrade.user] =
-                queuedTrade.userQueueIndex +
-                1;
         }
-        // Track the next queueIndex to be processed overall
-        nextQueueIdToProcess = params[params.length - 1].queueId + 1;
     }
 
     /**
