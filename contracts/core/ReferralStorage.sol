@@ -99,6 +99,8 @@ contract ReferralStorage is IReferralStorage, Ownable {
         require(msg.sender == codeOwner[_code], "ReferralStorage: forbidden");
 
         codeOwner[_code] = _newUser;
+        userCode[_newUser] = _code;
+        userCode[msg.sender] = "";
         emit SetCodeOwner(msg.sender, _newUser, _code);
     }
 
