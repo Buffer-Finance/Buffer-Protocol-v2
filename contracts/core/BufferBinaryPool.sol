@@ -265,7 +265,8 @@ contract BufferBinaryPool is
         unlockedAmount = liquidityPerUser[account].unlockedAmount;
         uint256 index = liquidityPerUser[account].nextIndexForUnlock;
         nextIndexForUnlock = index;
-        for (uint256 n = index; n < len; n++) {
+        uint256 maxIndex = index + 1000 < len ? index + 1000 : len;
+        for (uint256 n = index; n < maxIndex; n++) {
             if (
                 liquidityPerUser[account].lockedAmounts[n].timestamp +
                     lockupPeriod <=
