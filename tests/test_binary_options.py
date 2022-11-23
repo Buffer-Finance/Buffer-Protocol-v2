@@ -159,6 +159,8 @@ class BinaryOptionTesting(object):
             "MaxPeriod needs to be greater than or equal the min period"
         ):
             self.options_config.setMaxPeriod(120)
+        with brownie.reverts("MaxPeriod should be less than or equal to 1 day"):
+            self.options_config.setMaxPeriod(86400 + 1)
         self.options_config.setMaxPeriod(86400)
         assert self.options_config.maxPeriod() == 86400
 
