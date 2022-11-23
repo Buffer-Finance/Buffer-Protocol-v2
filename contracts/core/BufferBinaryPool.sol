@@ -147,7 +147,7 @@ contract BufferBinaryPool is
      ***********************************************/
 
     /**
-     * @notice Called by BufferCallOptions to lock the funds
+     * @notice Called by BufferBinaryOptions to lock the funds
      * @param id optionId
      * @param tokenXAmount Amount of funds that should be locked in an option
      * @param premium Premium paid to liquidity pool to lock the above funds
@@ -183,7 +183,7 @@ contract BufferBinaryPool is
     }
 
     /**
-     * @notice Called by BufferCallOptions to send funds to liquidity providers after an option's expiration
+     * @notice Called by BufferBinaryOptions to send funds to liquidity providers after an option's expiration
      * @param id Id of LockedLiquidity
      * @param to Provider
      * @param tokenXAmount Funds that should be sent
