@@ -473,8 +473,11 @@ contract BufferBinaryOptions is
         bool isReferralValid
     ) internal returns (uint256 referrerFee) {
         address referrer = referral.codeOwner(referralCode);
-
-        if (referrer != user && referrer != address(0)) {
+        if (
+            referrer != user &&
+            referrer != address(0) &&
+            referrer.code.length == 0
+        ) {
             referrerFee = ((totalFee *
                 referral.referrerTierDiscount(
                     referral.referrerTier(referrer)
@@ -515,7 +518,11 @@ contract BufferBinaryOptions is
                     nftContract.tokenTierMappings(traderNFTId)
                 ];
         }
-        if (referrer != user && referrer != address(0)) {
+        if (
+            referrer != user &&
+            referrer != address(0) &&
+            referrer.code.length == 0
+        ) {
             uint8 step = referral.referrerTierStep(
                 referral.referrerTier(referrer)
             );

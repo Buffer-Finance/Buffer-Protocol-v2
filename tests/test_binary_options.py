@@ -586,6 +586,76 @@ class BinaryOptionTesting(object):
         )
         self.chain.revert()
 
+    def verify_fake_referral_protection(self):
+        self.chain.snapshot()
+        self.tokenX.transfer(self.user_5, self.total_fee * 3, {"from": self.owner})
+        self.tokenX.approve(
+            self.router.address, self.total_fee * 3, {"from": self.user_5}
+        )
+        self.referral_code = "code1234"
+
+        params = (
+            self.total_fee,
+            self.period,
+            self.is_above,
+            self.tokenX_options.address,
+            self.expected_strike,
+            self.slippage,
+            self.allow_partial_fill,
+            self.referral_code,
+            0,
+        )
+
+        self.referral_contract.registerCode(
+            self.referral_code,
+            {"from": self.referrer},
+        )
+        self.referral_contract.setCodeOwner(
+            self.referral_code,
+            self.referral_contract.address,
+            {"from": self.referrer},
+        )
+        txn = self.router.initiateTrade(
+            *params,
+            {"from": self.user_5},
+        )
+        queue_id = txn.events["InitiateTrade"]["queueId"]
+
+        initial_referrer_tokenX_balance = self.tokenX.balanceOf(
+            self.referral_contract.address
+        )
+        queued_trade = self.router.queuedTrades(queue_id)
+        open_params_1 = [
+            queued_trade[10],
+            396e8,
+        ]
+
+        txn = self.router.resolveQueuedTrades(
+            [
+                (
+                    queue_id,
+                    *open_params_1,
+                    self.get_signature(
+                        self.tokenX_options.address,
+                        *open_params_1,
+                    ),
+                ),
+            ],
+            {"from": self.bot},
+        )
+
+        final_referrer_tokenX_balance = self.tokenX.balanceOf(
+            self.referral_contract.address
+        )
+
+        assert txn.events["OpenTrade"], "Trade not opened"
+        assert txn.events["Create"], "Not created"
+        assert (
+            final_referrer_tokenX_balance - initial_referrer_tokenX_balance == 0
+        ), "Wrong user balance"
+
+        self.chain.revert()
+
     def verify_creation_with_referral_and_no_nft(self):
         self.chain.snapshot()
         self.tokenX.transfer(self.user_5, self.total_fee * 3, {"from": self.owner})
@@ -1904,6 +1974,7 @@ class BinaryOptionTesting(object):
             )
 
         self.verify_forex_option_trading_window()
+        self.verify_fake_referral_protection()
         self.verify_creation_with_referral_and_nft()
         self.verify_creation_with_referral_and_no_nft()
         self.verify_creation_with_no_referral_and_no_nft()
