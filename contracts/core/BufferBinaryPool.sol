@@ -4,7 +4,7 @@ pragma solidity 0.8.4;
 
 import "../interfaces/Interfaces.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
-import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 
 /**
@@ -17,6 +17,7 @@ contract BufferBinaryPool is
     AccessControl,
     ILiquidityPool
 {
+    using SafeERC20 for ERC20;
     ERC20 public tokenX;
     uint16 public constant ACCURACY = 1e3;
     uint32 public constant INITIAL_RATE = 1;
@@ -162,9 +163,7 @@ contract BufferBinaryPool is
             (lockedAmount + tokenXAmount) <= totalTokenXBalance(),
             "Pool: Amount is too large."
         );
-
-        bool success = tokenX.transferFrom(msg.sender, address(this), premium);
-        require(success, "Pool: The Premium transfer didn't go through");
+        tokenX.safeTransferFrom(msg.sender, address(this), premium);
 
         lockedLiquidity[msg.sender].push(
             LockedLiquidity(tokenXAmount, premium, true)
@@ -205,9 +204,7 @@ contract BufferBinaryPool is
         ll.locked = false;
         lockedPremium = lockedPremium - ll.premium;
         lockedAmount = lockedAmount - transferTokenXAmount;
-
-        bool success = tokenX.transfer(to, transferTokenXAmount);
-        require(success, "Pool: The Payout transfer didn't go through");
+        tokenX.safeTransfer(to, transferTokenXAmount);
 
         if (transferTokenXAmount <= ll.premium)
             emit Profit(id, ll.premium - transferTokenXAmount);
@@ -238,12 +235,7 @@ contract BufferBinaryPool is
         require(mint >= minMint, "Pool: Mint limit is too large");
         require(mint > 0, "Pool: Amount is too small");
 
-        bool success = tokenX.transferFrom(
-            account,
-            address(this),
-            tokenXAmount
-        );
-        require(success, "Pool: The Provide transfer didn't go through");
+        tokenX.safeTransferFrom(account, address(this), tokenXAmount);
 
         _mint(account, mint);
 
@@ -324,8 +316,7 @@ contract BufferBinaryPool is
 
         _burn(account, burn);
 
-        bool success = tokenX.transfer(account, tokenXAmountToWithdraw);
-        require(success, "Pool: The Withdrawal didn't go through");
+        tokenX.safeTransfer(account, tokenXAmountToWithdraw);
 
         emit Withdraw(account, tokenXAmountToWithdraw, burn);
     }

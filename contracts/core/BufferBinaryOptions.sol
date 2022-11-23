@@ -5,6 +5,7 @@ pragma solidity 0.8.4;
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
+import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "../interfaces/Interfaces.sol";
 
 /**
@@ -19,6 +20,7 @@ contract BufferBinaryOptions is
     ERC721,
     AccessControl
 {
+    using SafeERC20 for ERC20;
     uint256 public nextTokenId = 0;
     uint256 public totalLockedAmount;
     bool public isPaused;
@@ -138,11 +140,10 @@ contract BufferBinaryOptions is
             option.premium -
             referrerFee;
 
-        bool success = tokenX.transfer(
+        tokenX.safeTransfer(
             config.settlementFeeDisbursalContract(),
             settlementFee
         );
-        require(success, "Transfer didn't go through");
 
         pool.lock(optionID, option.lockedAmount, option.premium);
         emit Create(
@@ -483,8 +484,7 @@ contract BufferBinaryOptions is
                     referral.referrerTier(referrer)
                 )) / (1e4 * 1e3));
             if (referrerFee > 0) {
-                bool success = tokenX.transfer(referrer, referrerFee);
-                require(success, "Transfer didn't go through");
+                tokenX.safeTransfer(referrer, referrerFee);
 
                 (uint256 formerUnitFee, , ) = _fees(
                     10**decimals(),
