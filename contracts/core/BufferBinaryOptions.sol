@@ -491,6 +491,7 @@ contract BufferBinaryOptions is
                     _getbaseSettlementFeePercentage(isAbove)
                 );
                 emit UpdateReferral(
+                    user,
                     referrer,
                     isReferralValid,
                     totalFee,
