@@ -125,7 +125,7 @@ contract BufferBinaryOptions is
         optionID = _generateTokenId();
         userOptionIds[optionParams.user].push(optionID);
         options[optionID] = option;
-        _safeMint(optionParams.user, optionID);
+        _mint(optionParams.user, optionID);
 
         uint256 referrerFee = _processReferralRebate(
             optionParams.user,
