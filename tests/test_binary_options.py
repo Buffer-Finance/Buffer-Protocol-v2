@@ -1601,7 +1601,9 @@ class BinaryOptionTesting(object):
             == final_pool_tokenX_balance - initial_pool_tokenX_balance
             == 0
         ), "Wrong transfer of funds"
-        with brownie.reverts("ERC721: invalid token ID"):  # Option burnt
+        with brownie.reverts(
+            "ERC721: owner query for nonexistent token"
+        ):  # Option burnt
             self.tokenX_options.ownerOf(1)
 
         txn = self.unlock_options([(0, 390e8)])
@@ -1625,7 +1627,9 @@ class BinaryOptionTesting(object):
             == final_pool_tokenX_balance - initial_pool_tokenX_balance
             == 0
         ), "Wrong transfer of funds"
-        with brownie.reverts("ERC721: invalid token ID"):  # Option burnt
+        with brownie.reverts(
+            "ERC721: owner query for nonexistent token"
+        ):  # Option burnt
             self.tokenX_options.ownerOf(1)
 
         txn = self.unlock_options([(0, 390e8)])
