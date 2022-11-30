@@ -421,7 +421,7 @@ contract BufferBinaryPool is
     function divCeil(uint256 a, uint256 b) internal pure returns (uint256) {
         require(b > 0);
         uint256 c = a / b;
-        if (2 * (a % b) > b) c = c + 1;
+        if (a % b != 0) c = c + 1;
         return c;
     }
 }
