@@ -51,7 +51,7 @@ def test_binary_pool(contracts, accounts, chain):
     # If amount of tokenx provided to the contract are X
     # If provider hasn't approved that much amount then it should revert
 
-    with brownie.reverts("ERC20: transfer amount exceeds balance"):
+    with brownie.reverts(""):
         binary_pool_atm.provide(tokenX_amount_1, 0, {"from": user_1})
 
     with brownie.reverts("Pool has already reached it's max limit"):
@@ -252,7 +252,7 @@ def test_binary_pool(contracts, accounts, chain):
                 {"from": user_2},
             )
 
-        with brownie.reverts("ERC20: transfer amount exceeds allowance"):
+        with brownie.reverts(""):
             binary_pool_atm.lock(id, tokenX_amount_3, tokenX_amount_2, {"from": user_2})
 
         initial_tokenX_balance_options = tokenX.balanceOf(user_2)
