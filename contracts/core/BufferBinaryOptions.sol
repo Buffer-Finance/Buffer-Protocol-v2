@@ -138,12 +138,7 @@ contract BufferBinaryOptions is
             option.premium -
             referrerFee;
 
-        bool success = tokenX.transfer(
-            config.settlementFeeDisbursalContract(),
-            settlementFee
-        );
-        require(success, "Transfer didn't go through");
-
+        tokenX.transfer(config.settlementFeeDisbursalContract(), settlementFee);
         pool.lock(optionID, option.lockedAmount, option.premium);
         emit Create(
             optionParams.user,
@@ -483,8 +478,7 @@ contract BufferBinaryOptions is
                     referral.referrerTier(referrer)
                 )) / (1e4 * 1e3));
             if (referrerFee > 0) {
-                bool success = tokenX.transfer(referrer, referrerFee);
-                require(success, "Transfer didn't go through");
+                tokenX.transfer(referrer, referrerFee);
 
                 (uint256 formerUnitFee, , ) = _fees(
                     10**decimals(),
