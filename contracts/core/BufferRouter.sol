@@ -263,8 +263,16 @@ contract BufferRouter is AccessControl, IBufferRouter {
         bytes32 digest = ECDSA.toEthSignedMessageHash(
             keccak256(abi.encodePacked(assetPair, timestamp, price))
         );
-        address recoveredSigner = ECDSA.recover(digest, signature);
-        return recoveredSigner == publisher;
+        (address recoveredSigner, ECDSA.RecoverError error) = ECDSA.tryRecover(
+            digest,
+            signature
+        );
+
+        if (error == ECDSA.RecoverError.NoError) {
+            return recoveredSigner == publisher;
+        } else {
+            return false;
+        }
     }
 
     function _openQueuedTrade(uint256 queueId, uint256 price) internal {
