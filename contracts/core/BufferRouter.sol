@@ -83,12 +83,11 @@ contract BufferRouter is AccessControl, IBufferRouter {
 
         // Transfer the fee specified from the user to this contract.
         // User has to approve first inorder to execute this function
-        bool success = IERC20(optionsContract.tokenX()).transferFrom(
+        IERC20(optionsContract.tokenX()).transferFrom(
             msg.sender,
             address(this),
             totalFee
         );
-        require(success, "Transfer didn't go through");
 
         queueId = nextQueueId;
         nextQueueId++;
