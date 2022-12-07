@@ -115,10 +115,6 @@ class BinaryOptionTesting(object):
 
         self.referral_contract.registerCode("123", {"from": self.user_1})
 
-        with brownie.reverts("ReferralStorage: forbidden"):
-            self.referral_contract.setCodeOwner("123", self.user_2)
-        self.referral_contract.setCodeOwner("123", self.user_2, {"from": self.user_1})
-
         self.chain.revert()
 
     def verify_option_config(self):
@@ -610,7 +606,7 @@ class BinaryOptionTesting(object):
 
         self.referral_contract.registerCode(
             self.referral_code,
-            {"from": self.referrer},
+            {"from": self.user_7},
         )
         self.referral_contract.setCodeOwner(
             self.referral_code,
@@ -1977,7 +1973,7 @@ class BinaryOptionTesting(object):
             )
 
         self.verify_forex_option_trading_window()
-        self.verify_fake_referral_protection()
+        # self.verify_fake_referral_protection()
         self.verify_creation_with_referral_and_nft()
         self.verify_creation_with_referral_and_no_nft()
         self.verify_creation_with_no_referral_and_no_nft()
