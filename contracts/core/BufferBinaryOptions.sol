@@ -439,8 +439,8 @@ contract BufferBinaryOptions is
     {
         // Probability for ATM options will always be 0.5 due to which we can skip using BSM
         premium = amount / 2;
-        settlementFee = (amount * settlementFeePercentage) / 1e4;
-        total = settlementFee + premium;
+        total = (premium * 1e4) / (1e4 - settlementFeePercentage);
+        settlementFee = total - premium;
     }
 
     /**

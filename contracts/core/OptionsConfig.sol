@@ -66,6 +66,10 @@ contract OptionsConfig is Ownable, IOptionsConfig {
 
     function setMaxPeriod(uint32 value) external onlyOwner {
         require(
+            value <= 1 days,
+            "MaxPeriod should be less than or equal to 1 day"
+        );
+        require(
             value >= minPeriod,
             "MaxPeriod needs to be greater than or equal the min period"
         );

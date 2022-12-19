@@ -159,6 +159,8 @@ class BinaryOptionTesting(object):
             "MaxPeriod needs to be greater than or equal the min period"
         ):
             self.options_config.setMaxPeriod(120)
+        with brownie.reverts("MaxPeriod should be less than or equal to 1 day"):
+            self.options_config.setMaxPeriod(86400 + 1)
         self.options_config.setMaxPeriod(86400)
         assert self.options_config.maxPeriod() == 86400
 
@@ -692,7 +694,7 @@ class BinaryOptionTesting(object):
         )
         queue_id = txn.events["InitiateTrade"]["queueId"]
 
-        expected_amount = 1600000
+        expected_amount = 1750001
 
         initial_referrer_tokenX_balance = self.tokenX.balanceOf(self.referrer)
         initial_user_tokenX_balance = self.tokenX.balanceOf(self.user_5)
@@ -744,7 +746,7 @@ class BinaryOptionTesting(object):
             expected_amount // 2,
             self.is_above,
             self.total_fee,
-            197500,
+            122500,  # 12.5%
             final_pool_tokenX_balance - initial_pool_tokenX_balance,
             final_sfd_tokenX_balance - initial_sfd_tokenX_balance,
             txn,
@@ -806,16 +808,16 @@ class BinaryOptionTesting(object):
         assert (
             final_user_tokenX_balance - initial_user_tokenX_balance == 0
         ), "Wrong user balance"
-        assert final_locked_amount - initial_locked_amount == 1538461
+        assert final_locked_amount - initial_locked_amount == 1700000
         self.verify_option_states(
             0,
             self.user_1,
             396e8,
-            1538461,
-            1538461 // 2,
+            1700000,
+            1700000 // 2,
             self.is_above,
             self.total_fee,
-            230770,
+            150000,
             final_pool_tokenX_balance - initial_pool_tokenX_balance,
             final_sfd_tokenX_balance - initial_sfd_tokenX_balance,
             txn,
@@ -875,11 +877,11 @@ class BinaryOptionTesting(object):
             1,
             self.user_1,
             396e8,
-            1538461,
-            1538461 // 2,
+            1700000,
+            1700000 // 2,
             self.is_above,
             self.total_fee,
-            230770,
+            150000,
             final_pool_tokenX_balance - initial_pool_tokenX_balance,
             final_sfd_tokenX_balance - initial_sfd_tokenX_balance,
             txn,
@@ -940,7 +942,7 @@ class BinaryOptionTesting(object):
             *params,
             {"from": self.user_1},
         )
-        expected_amount = 1600000
+        expected_amount = 1750001
         initial_user_tokenX_balance = self.tokenX.balanceOf(self.user_1)
         initial_pool_tokenX_balance = self.tokenX.balanceOf(self.generic_pool.address)
         initial_locked_amount = self.tokenX_options.totalLockedAmount()
@@ -982,7 +984,7 @@ class BinaryOptionTesting(object):
             expected_amount // 2,
             self.is_above,
             self.total_fee,
-            200000,
+            125000.0,
             final_pool_tokenX_balance - initial_pool_tokenX_balance,
             final_sfd_tokenX_balance - initial_sfd_tokenX_balance,
             txn,
@@ -1034,7 +1036,7 @@ class BinaryOptionTesting(object):
             *params,
             {"from": self.user_1},
         )
-        expected_amount = 1666666
+        expected_amount = 1800001
         initial_user_tokenX_balance = self.tokenX.balanceOf(self.user_1)
         initial_pool_tokenX_balance = self.tokenX.balanceOf(self.generic_pool.address)
         initial_locked_amount = self.tokenX_options.totalLockedAmount()
@@ -1074,7 +1076,6 @@ class BinaryOptionTesting(object):
             final_user_tokenX_balance - initial_user_tokenX_balance == 0
         ), "Wrong user balance"
         assert final_locked_amount - initial_locked_amount == expected_amount
-        assert txn.events["UpdateReferral"]["rebate"] == 83332
         self.verify_option_states(
             0,
             self.user_1,
@@ -1083,7 +1084,7 @@ class BinaryOptionTesting(object):
             expected_amount // 2,
             self.is_above,
             self.total_fee,
-            161667.0,
+            95000.0,  # 5%
             final_pool_tokenX_balance - initial_pool_tokenX_balance,
             final_sfd_tokenX_balance - initial_sfd_tokenX_balance,
             txn,
@@ -1135,7 +1136,7 @@ class BinaryOptionTesting(object):
             *params,
             {"from": self.user_1},
         )
-        expected_amount = 1666666
+        expected_amount = 1800001
         initial_user_tokenX_balance = self.tokenX.balanceOf(self.user_1)
         initial_pool_tokenX_balance = self.tokenX.balanceOf(self.generic_pool.address)
         initial_locked_amount = self.tokenX_options.totalLockedAmount()
@@ -1183,7 +1184,7 @@ class BinaryOptionTesting(object):
             expected_amount // 2,
             self.is_above,
             self.total_fee,
-            166667 - 2500,
+            97500,
             final_pool_tokenX_balance - initial_pool_tokenX_balance,
             final_sfd_tokenX_balance - initial_sfd_tokenX_balance,
             txn,
@@ -1216,11 +1217,12 @@ class BinaryOptionTesting(object):
         totalPoolBalance = self.generic_pool.totalTokenXBalance()
         availableBalance = totalPoolBalance - self.tokenX_options.totalLockedAmount()
 
+        max_utilization = self.tokenX_options.getMaxUtilization()
         print(
             "available",
             availableBalance,
             availableBalance - (totalPoolBalance * 90 // 100),
-            self.tokenX_options.getMaxUtilization(),
+            max_utilization,
         )
         initial_user_tokenX_balance = self.tokenX.balanceOf(self.user_1)
         initial_pool_tokenX_balance = self.tokenX.balanceOf(self.generic_pool.address)
@@ -1250,18 +1252,18 @@ class BinaryOptionTesting(object):
         final_sfd_tokenX_balance = self.tokenX.balanceOf(self.settlement_fee_disbursal)
         assert txn.events["OpenTrade"], "Wrong action"
         assert (
-            final_user_tokenX_balance - initial_user_tokenX_balance == 450000.0
+            final_user_tokenX_balance - initial_user_tokenX_balance == 882353.0
         ), "Wrong user balance"
 
         self.verify_option_states(
             next_id,
             self.user_1,
             396e8,
-            2384617,  # self.generic_pool.availableBalance() * 5 // 100
-            2384617 // 2,
+            max_utilization,  # self.generic_pool.availableBalance() * 5 // 100
+            max_utilization // 2,
             False,
-            1550000.0,
-            357692.0,
+            1117647.0,
+            167647.0,
             final_pool_tokenX_balance - initial_pool_tokenX_balance,
             final_sfd_tokenX_balance - initial_sfd_tokenX_balance,
             txn,
@@ -1291,12 +1293,12 @@ class BinaryOptionTesting(object):
         )
         totalPoolBalance = self.generic_pool.totalTokenXBalance()
         availableBalance = totalPoolBalance - self.tokenX_options.totalLockedAmount()
-
+        max_utilization = self.tokenX_options.getMaxUtilization()
         print(
             "available",
             availableBalance,
             availableBalance - (totalPoolBalance * 90 // 100),
-            self.tokenX_options.getMaxUtilization(),
+            max_utilization,
         )
         initial_user_tokenX_balance = self.tokenX.balanceOf(self.user_1)
         initial_pool_tokenX_balance = self.tokenX.balanceOf(self.generic_pool.address)
@@ -1326,17 +1328,17 @@ class BinaryOptionTesting(object):
         final_sfd_tokenX_balance = self.tokenX.balanceOf(self.settlement_fee_disbursal)
         assert txn.events["OpenTrade"], "Wrong action"
         assert (
-            final_user_tokenX_balance - initial_user_tokenX_balance == 350000.0
+            final_user_tokenX_balance - initial_user_tokenX_balance == 411765.0
         ), "Wrong user balance"
         self.verify_option_states(
             4,
             self.user_1,
             400e8,
-            1000000,
-            1000000 // 2,
+            max_utilization,
+            max_utilization // 2,
             self.is_above,
-            650000.0,
-            150000.0,
+            588235.0,
+            88235.0,
             final_pool_tokenX_balance - initial_pool_tokenX_balance,
             final_sfd_tokenX_balance - initial_sfd_tokenX_balance,
             txn,
@@ -1403,17 +1405,17 @@ class BinaryOptionTesting(object):
         final_sfd_tokenX_balance = self.tokenX.balanceOf(self.settlement_fee_disbursal)
         assert txn.events["OpenTrade"], "Wrong action"
         assert (
-            final_user_tokenX_balance - initial_user_tokenX_balance == 1820001
+            final_user_tokenX_balance - initial_user_tokenX_balance == 1819998
         ), "Wrong user balance"
         self.verify_option_states(
             5,
             self.user_1,
             400e8,
-            7969230.0,
-            7969230.0 // 2,
+            8806004.0,
+            8806004.0 // 2,
             self.is_above,
-            5179999,
-            1195384.0,
+            5180002,
+            777000.0,
             final_pool_tokenX_balance - initial_pool_tokenX_balance,
             final_sfd_tokenX_balance - initial_sfd_tokenX_balance,
             txn,
@@ -1546,13 +1548,13 @@ class BinaryOptionTesting(object):
 
         assert txn.events["Loss"] and txn.events["Exercise"], "Option didnot exercise"
         assert (
-            final_user_tokenX_balance - initial_user_tokenX_balance == 1538461
+            final_user_tokenX_balance - initial_user_tokenX_balance == 1700000
         ), "Wrong user balance"
         assert (
-            initial_pool_tokenX_balance - final_pool_tokenX_balance == 1538461
+            initial_pool_tokenX_balance - final_pool_tokenX_balance == 1700000
         ), "Wrong pool balance"
         assert self.tokenX_options.options(0)[0] == 2, "Wrong state"
-        assert initial_locked_amount - final_locked_amount == 1538461
+        assert initial_locked_amount - final_locked_amount == 1700000
 
         # ITM for put
         initial_user_tokenX_balance = self.tokenX.balanceOf(self.user_1)
@@ -1564,10 +1566,10 @@ class BinaryOptionTesting(object):
 
         assert txn.events["Loss"] and txn.events["Exercise"], "Option didnot exercise"
         assert (
-            final_user_tokenX_balance - initial_user_tokenX_balance == 2384617
+            final_user_tokenX_balance - initial_user_tokenX_balance == 1900000
         ), "Wrong user balance"
         assert (
-            initial_pool_tokenX_balance - final_pool_tokenX_balance == 2384617
+            initial_pool_tokenX_balance - final_pool_tokenX_balance == 1900000
         ), "Wrong pool balance"
         assert self.tokenX_options.options(3)[0] == 2, "Wrong state"
 
@@ -1599,9 +1601,8 @@ class BinaryOptionTesting(object):
             == final_pool_tokenX_balance - initial_pool_tokenX_balance
             == 0
         ), "Wrong transfer of funds"
-        with brownie.reverts(
-            "ERC721: owner query for nonexistent token"
-        ):  # Option burnt
+        with brownie.reverts("ERC721: invalid token ID"):  # Option burnt
+
             self.tokenX_options.ownerOf(1)
 
         txn = self.unlock_options([(0, 390e8)])
@@ -1625,9 +1626,7 @@ class BinaryOptionTesting(object):
             == final_pool_tokenX_balance - initial_pool_tokenX_balance
             == 0
         ), "Wrong transfer of funds"
-        with brownie.reverts(
-            "ERC721: owner query for nonexistent token"
-        ):  # Option burnt
+        with brownie.reverts("ERC721: invalid token ID"):  # Option burnt
             self.tokenX_options.ownerOf(1)
 
         txn = self.unlock_options([(0, 390e8)])
