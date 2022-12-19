@@ -134,6 +134,23 @@ interface IBufferBinaryOptions {
 
     function assetPair() external view returns (string calldata);
 
+    function fees(
+        uint256 amount,
+        address user,
+        bool isAbove,
+        string calldata referralCode,
+        uint256 traderNFTId
+    )
+        external
+        view
+        returns (
+            uint256 total,
+            uint256 settlementFee,
+            uint256 premium
+        );
+
+    function getMaxUtilization() external view returns (uint256 maxAmount);
+
     enum State {
         Inactive,
         Active,

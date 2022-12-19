@@ -205,6 +205,7 @@ contract BufferBinaryOptions is
     )
         public
         view
+        override
         returns (
             uint256 total,
             uint256 settlementFee,
@@ -293,7 +294,12 @@ contract BufferBinaryOptions is
     /**
      * @notice Calculates max option amount based on the pool's capacity
      */
-    function getMaxUtilization() public view returns (uint256 maxAmount) {
+    function getMaxUtilization()
+        public
+        view
+        override
+        returns (uint256 maxAmount)
+    {
         // Calculate the max option size due to asset wise pool utilization limit
         uint256 totalPoolBalance = pool.totalTokenXBalance();
         uint256 availableBalance = totalPoolBalance - totalLockedAmount;
