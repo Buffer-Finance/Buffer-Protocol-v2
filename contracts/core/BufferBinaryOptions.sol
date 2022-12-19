@@ -325,6 +325,7 @@ contract BufferBinaryOptions is
             bool isReferralValid
         )
     {
+        require(!isPaused, "O33");
         require(
             assetCategory != AssetCategory.Forex ||
                 isInCreationWindow(optionParams.period),

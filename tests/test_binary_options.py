@@ -1381,6 +1381,53 @@ class BinaryOptionTesting(object):
             and txn.events["CancelTrade"]["reason"] == "O31"
         )
 
+    def verify_creation_with_paused_creation(self):
+        self.chain.snapshot()
+        self.tokenX.transfer(self.user_1, self.total_fee, {"from": self.owner})
+        self.tokenX.approve(self.router.address, self.total_fee, {"from": self.user_1})
+        params = (
+            self.total_fee,
+            self.period,
+            self.is_above,
+            self.tokenX_options.address,
+            self.expected_strike,
+            self.slippage,
+            self.allow_partial_fill,
+            self.referral_code,
+            0,
+        )
+
+        self.router.initiateTrade(
+            *params,
+            {"from": self.user_1},
+        )
+        queued_trade = self.router.queuedTrades(5)
+        open_params_1 = [
+            queued_trade[10],
+            400e8,
+        ]
+        self.tokenX_options.toggleCreation()
+        txn = self.router.resolveQueuedTrades(
+            [
+                (
+                    5,
+                    *open_params_1,
+                    self.get_signature(
+                        self.tokenX_options.address,
+                        *open_params_1,
+                    ),
+                ),
+            ],
+            {"from": self.bot},
+        )
+
+        assert (
+            txn.events["CancelTrade"]
+            and txn.events["CancelTrade"]["queueId"] == 5
+            and txn.events["CancelTrade"]["reason"] == "O33"
+        )
+        self.chain.revert()
+
     def unlock_options(self, options):
         params = []
         for option in options:
@@ -1859,6 +1906,7 @@ class BinaryOptionTesting(object):
 
         self.verify_put_creation_with_less_liquidity()
         self.verify_call_creation_with_less_liquidity()
+        self.verify_creation_with_paused_creation()
 
         self.chain.sleep(10 * 60 + 1)
         self.generic_pool.withdraw(
