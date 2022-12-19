@@ -25,14 +25,14 @@ from .utility import deploy_contract, save_flat, transact
 def main():
     feeBlpDistributorTokensPerInterval = 0  # USDC
     feeBfrDistributorTokensPerInterval = 0  # USDC
-    stakedBfrDistributorTokensPerInterval = 0.03e18  # esBFR
-    stakedBlpDistributorTokensPerInterval = 0.03e18  # esBFR
+    stakedBfrDistributorTokensPerInterval = int(0.03e18)  # esBFR
+    stakedBlpDistributorTokensPerInterval = int(0.03e18)  # esBFR
     bonusMultiplier = 10000  # 100% APR of bonus multiplier bnBFR
 
     vestingDuration = 365 * 24 * 60 * 60
 
     # Initial funds
-    stakedBlpDistributorRewards = 1_000_000e18  # esBFR to be added
+    stakedBlpDistributorRewards = int(1_000_000e18)  # esBFR to be added
 
     usdc_address = None
     blp = None
@@ -73,6 +73,7 @@ def main():
         governor = bfr_admin
 
         usdc_address = "0x49932a64C16E8369d73EA9342a97912Cb90e75C2"
+        blp = "0xFd143dC1AC212B47F5e8916add6362B694568AEf"
         bfr = "0x89fEF05446aEA764C53a2f09bB763876FB57ea8E"
         esBfr = "0x92faca5302789730b427c04bc9A111b5733C054F"
         bnBfr = "0x8d3B227ebf5424f9b324908037bdD1db71F66521"
@@ -99,6 +100,8 @@ def main():
             [],
         )
         usdc_address = usdc.address
+    else:
+        usdc = USDC.at(usdc_address)
 
     if blp:
         blp = BufferBinaryPool.at(blp)
@@ -141,11 +144,20 @@ def main():
             RewardDistributor,
             [esBfr.address, stakedBfrTracker.address],
         )
-        stakedBfrTracker.initialize(
-            [bfr.address, esBfr.address], stakedBfrDistributor.address
+        transact(
+            stakedBfrTracker.address,
+            stakedBfrTracker.abi,
+            "initialize",
+            [bfr.address, esBfr.address],
+            stakedBfrDistributor.address,
+            sender=bfr_admin,
         )
-
-        stakedBfrDistributor.updateLastDistributionTime()
+        transact(
+            stakedBfrDistributor.address,
+            stakedBfrDistributor.abi,
+            "updateLastDistributionTime",
+            sender=bfr_admin,
+        )
 
     if bonusBfrTracker:
         bonusBfrTracker = RewardTracker.at(bonusBfrTracker)
@@ -160,11 +172,20 @@ def main():
             BonusDistributor,
             [bnBfr.address, bonusBfrTracker.address],
         )
-
-        bonusBfrTracker.initialize(
-            [stakedBfrTracker.address], bonusBfrDistributor.address
+        transact(
+            bonusBfrTracker.address,
+            bonusBfrTracker.abi,
+            "initialize",
+            [stakedBfrTracker.address],
+            bonusBfrDistributor.address,
+            sender=bfr_admin,
         )
-        bonusBfrDistributor.updateLastDistributionTime()
+        transact(
+            bonusBfrDistributor.address,
+            bonusBfrDistributor.abi,
+            "updateLastDistributionTime",
+            sender=bfr_admin,
+        )
 
     if feeBfrTracker:
         feeBfrTracker = RewardTracker.at(feeBfrTracker)
@@ -178,10 +199,20 @@ def main():
         )
         # [contract][function](arguments, {"from": [account]})
 
-        feeBfrTracker.initialize(
-            [bonusBfrTracker.address, bnBfr.address], feeBfrDistributor.address
+        transact(
+            feeBfrTracker.address,
+            feeBfrTracker.abi,
+            "initialize",
+            [bonusBfrTracker.address, bnBfr.address],
+            feeBfrDistributor.address,
+            sender=bfr_admin,
         )
-        feeBfrDistributor.updateLastDistributionTime()
+        transact(
+            feeBfrDistributor.address,
+            feeBfrDistributor.abi,
+            "updateLastDistributionTime",
+            sender=bfr_admin,
+        )
 
     # BLP staking
     if feeBlpTracker:
@@ -194,9 +225,20 @@ def main():
         feeBlpDistributor = deploy_contract(
             bfr_admin, network, RewardDistributor, [usdc_address, feeBlpTracker.address]
         )
-
-        feeBlpTracker.initialize([blp.address], feeBlpDistributor.address)
-        feeBlpDistributor.updateLastDistributionTime()
+        transact(
+            feeBlpTracker.address,
+            feeBlpTracker.abi,
+            "initialize",
+            [blp.address],
+            feeBlpDistributor.address,
+            sender=bfr_admin,
+        )
+        transact(
+            feeBlpDistributor.address,
+            feeBlpDistributor.abi,
+            "updateLastDistributionTime",
+            sender=bfr_admin,
+        )
 
     if stakedBlpTracker:
         stakedBlpTracker = RewardTracker.at(stakedBlpTracker)
@@ -211,12 +253,20 @@ def main():
             RewardDistributor,
             [esBfr.address, stakedBlpTracker.address],
         )
-
-        stakedBlpTracker.initialize(
-            [feeBlpTracker.address], stakedBlpDistributor.address
+        transact(
+            stakedBlpTracker.address,
+            stakedBlpTracker.abi,
+            "initialize",
+            [feeBlpTracker.address],
+            stakedBlpDistributor.address,
+            sender=bfr_admin,
         )
-
-        stakedBlpDistributor.updateLastDistributionTime()
+        transact(
+            stakedBlpDistributor.address,
+            stakedBlpDistributor.abi,
+            "updateLastDistributionTime",
+            sender=bfr_admin,
+        )
 
     if bfrVester:
         bfrVester = Vester.at(bfrVester)
@@ -283,7 +333,10 @@ def main():
 
     print(f"{Fore.GREEN}Initializing contracts..{Style.RESET_ALL}")
 
-    rewardRouter.initialize(
+    transact(
+        rewardRouter.address,
+        rewardRouter.abi,
+        "initialize",
         usdc_address,
         bfr.address,
         esBfr.address,
@@ -296,100 +349,340 @@ def main():
         stakedBlpTracker.address,
         bfrVester.address,
         blpVester.address,
-        {"from": bfr_admin},
+        sender=bfr_admin,
     )
 
     print(f"{Fore.GREEN}Setting private modes..{Style.RESET_ALL}")
 
     if redeployedBFR:
-        stakedBfrTracker.setInPrivateTransferMode(True, {"from": bfr_admin})
-        stakedBfrTracker.setInPrivateStakingMode(True, {"from": bfr_admin})
-        bonusBfrTracker.setInPrivateTransferMode(True, {"from": bfr_admin})
-        bonusBfrTracker.setInPrivateStakingMode(True, {"from": bfr_admin})
-        bonusBfrTracker.setInPrivateClaimingMode(True, {"from": bfr_admin})
-        feeBfrTracker.setInPrivateTransferMode(True, {"from": bfr_admin})
-        feeBfrTracker.setInPrivateStakingMode(True, {"from": bfr_admin})
-        esBfr.setInPrivateTransferMode(True, {"from": bfr_admin})
+        transact(
+            stakedBfrTracker.address,
+            stakedBfrTracker.abi,
+            "setInPrivateTransferMode",
+            True,
+            sender=bfr_admin,
+        )
+        transact(
+            stakedBfrTracker.address,
+            stakedBfrTracker.abi,
+            "setInPrivateStakingMode",
+            True,
+            sender=bfr_admin,
+        )
+        transact(
+            bonusBfrTracker.address,
+            bonusBfrTracker.abi,
+            "setInPrivateTransferMode",
+            True,
+            sender=bfr_admin,
+        )
+        transact(
+            bonusBfrTracker.address,
+            bonusBfrTracker.abi,
+            "setInPrivateStakingMode",
+            True,
+            sender=bfr_admin,
+        )
+        transact(
+            bonusBfrTracker.address,
+            bonusBfrTracker.abi,
+            "setInPrivateClaimingMode",
+            True,
+            sender=bfr_admin,
+        )
+        transact(
+            feeBfrTracker.address,
+            feeBfrTracker.abi,
+            "setInPrivateTransferMode",
+            True,
+            sender=bfr_admin,
+        )
+        transact(
+            feeBfrTracker.address,
+            feeBfrTracker.abi,
+            "setInPrivateStakingMode",
+            True,
+            sender=bfr_admin,
+        )
+        transact(
+            esBfr.address,
+            esBfr.abi,
+            "setInPrivateTransferMode",
+            True,
+            sender=bfr_admin,
+        )
 
     if redeployedBLP:
-        feeBlpTracker.setInPrivateTransferMode(True, {"from": bfr_admin})
-        feeBlpTracker.setInPrivateStakingMode(True, {"from": bfr_admin})
-        stakedBlpTracker.setInPrivateTransferMode(True, {"from": bfr_admin})
-        stakedBlpTracker.setInPrivateStakingMode(True, {"from": bfr_admin})
+        transact(
+            feeBlpTracker.address,
+            feeBlpTracker.abi,
+            "setInPrivateTransferMode",
+            True,
+            sender=bfr_admin,
+        )
+        transact(
+            feeBlpTracker.address,
+            feeBlpTracker.abi,
+            "setInPrivateStakingMode",
+            True,
+            sender=bfr_admin,
+        )
+        transact(
+            stakedBlpTracker.address,
+            stakedBlpTracker.abi,
+            "setInPrivateTransferMode",
+            True,
+            sender=bfr_admin,
+        )
+        transact(
+            stakedBlpTracker.address,
+            stakedBlpTracker.abi,
+            "setInPrivateStakingMode",
+            True,
+            sender=bfr_admin,
+        )
 
     print(f"{Fore.GREEN}Setting handlers..{Style.RESET_ALL}")
 
     if redeployedBFR:
         # allow bonusBfrTracker to stake stakedBfrTracker
-        stakedBfrTracker.setHandler(bonusBfrTracker.address, True, {"from": bfr_admin})
+        transact(
+            stakedBfrTracker.address,
+            stakedBfrTracker.abi,
+            "setHandler",
+            bonusBfrTracker.address,
+            True,
+            sender=bfr_admin,
+        )
 
         # allow feeBfrTracker to stake bonusBfrTracker
-        bonusBfrTracker.setHandler(feeBfrTracker.address, True, {"from": bfr_admin})
-
+        transact(
+            bonusBfrTracker.address,
+            bonusBfrTracker.abi,
+            "setHandler",
+            feeBfrTracker.address,
+            True,
+            sender=bfr_admin,
+        )
         # allow feeBfrTracker to stake bnBfr
-        bnBfr.setHandler(feeBfrTracker.address, True, {"from": bfr_admin})
-
+        transact(
+            bnBfr.address,
+            bnBfr.abi,
+            "setHandler",
+            feeBfrTracker.address,
+            True,
+            sender=bfr_admin,
+        )
     if redeployedBLP:
 
         # allow stakedBlpTracker to stake feeBlpTracker
-        feeBlpTracker.setHandler(stakedBlpTracker.address, True, {"from": bfr_admin})
+        transact(
+            feeBlpTracker.address,
+            feeBlpTracker.abi,
+            "setHandler",
+            stakedBlpTracker.address,
+            True,
+            sender=bfr_admin,
+        )
         # allow feeBlpTracker to stake BLP
-        blp.setHandler(feeBlpTracker.address, True, {"from": bfr_admin})
-
+        transact(
+            blp.address,
+            blp.abi,
+            "setHandler",
+            feeBlpTracker.address,
+            True,
+            sender=bfr_admin,
+        )
     print(f"{Fore.GREEN}Setting tokens per interval..{Style.RESET_ALL}")
 
-    if redeployedBFR:
-        stakedBfrDistributor.setTokensPerInterval(
-            stakedBfrDistributorTokensPerInterval, {"from": bfr_admin}
-        )
-        feeBfrDistributor.setTokensPerInterval(
-            feeBfrDistributorTokensPerInterval, {"from": bfr_admin}
-        )
-        bonusBfrDistributor.setBonusMultiplier(bonusMultiplier, {"from": bfr_admin})
-
     if redeployedBLP:
-        stakedBlpDistributor.setTokensPerInterval(
-            stakedBlpDistributorTokensPerInterval, {"from": bfr_admin}
+        transact(
+            stakedBlpDistributor.address,
+            stakedBlpDistributor.abi,
+            "setTokensPerInterval",
+            stakedBlpDistributorTokensPerInterval,
+            sender=bfr_admin,
         )
-        feeBlpDistributor.setTokensPerInterval(
-            feeBlpDistributorTokensPerInterval, {"from": bfr_admin}
+        transact(
+            feeBlpDistributor.address,
+            feeBlpDistributor.abi,
+            "setTokensPerInterval",
+            feeBlpDistributorTokensPerInterval,
+            sender=bfr_admin,
         )
 
     print(f"{Fore.GREEN}Funding distributors with rewards..{Style.RESET_ALL}")
 
     #  mint esBfr for distributors
-    esBfr.mint(
+    transact(
+        esBfr.address,
+        esBfr.abi,
+        "mint",
         stakedBlpDistributor.address,
         stakedBlpDistributorRewards,
-        {"from": esbfr_minter},
+        sender=esbfr_minter,
     )
-
     print(f"{Fore.GREEN}Setting governance...{Style.RESET_ALL}")
 
-    feeBlpTracker.setGov(governor, {"from": bfr_admin})
-    stakedBlpTracker.setGov(governor, {"from": bfr_admin})
-    stakedBlpDistributor.setGov(governor, {"from": bfr_admin})
-    blpVester.setGov(governor, {"from": bfr_admin})
-
+    transact(
+        feeBlpTracker.address,
+        feeBlpTracker.abi,
+        "setGov",
+        governor.address,
+        sender=bfr_admin,
+    )
+    transact(
+        stakedBlpTracker.address,
+        stakedBlpTracker.abi,
+        "setGov",
+        governor.address,
+        sender=bfr_admin,
+    )
+    transact(
+        stakedBlpDistributor.address,
+        stakedBlpDistributor.abi,
+        "setGov",
+        governor.address,
+        sender=bfr_admin,
+    )
+    transact(
+        blpVester.address,
+        blpVester.abi,
+        "setGov",
+        governor.address,
+        sender=bfr_admin,
+    )
     print(f"{Fore.GREEN}Setting handlers for router and esbfr..{Style.RESET_ALL}")
 
-    esBfr.setHandler(rewardRouter.address, True, {"from": governor})
-    esBfr.setHandler(stakedBlpDistributor.address, True, {"from": governor})
-    esBfr.setHandler(stakedBlpTracker.address, True, {"from": governor})
-    esBfr.setHandler(blpVester.address, True, {"from": governor})
+    transact(
+        esBfr.address,
+        esBfr.abi,
+        "setHandler",
+        rewardRouter.address,
+        True,
+        sender=bfr_admin,
+    )
+    transact(
+        esBfr.address,
+        esBfr.abi,
+        "setHandler",
+        stakedBlpDistributor.address,
+        True,
+        sender=bfr_admin,
+    )
+    transact(
+        esBfr.address,
+        esBfr.abi,
+        "setHandler",
+        stakedBlpTracker.address,
+        True,
+        sender=bfr_admin,
+    )
+    transact(
+        esBfr.address,
+        esBfr.abi,
+        "setHandler",
+        blpVester.address,
+        True,
+        sender=bfr_admin,
+    )
 
-    stakedBfrTracker.setHandler(rewardRouter.address, True, {"from": governor})
-    bonusBfrTracker.setHandler(rewardRouter.address, True, {"from": governor})
-    feeBfrTracker.setHandler(rewardRouter.address, True, {"from": governor})
-    feeBlpTracker.setHandler(rewardRouter.address, True, {"from": governor})
-    stakedBlpTracker.setHandler(rewardRouter.address, True, {"from": governor})
-    esBfr.setHandler(rewardRouter.address, True, {"from": governor})
+    transact(
+        stakedBfrTracker.address,
+        stakedBfrTracker.abi,
+        "setHandler",
+        rewardRouter.address,
+        True,
+        sender=governor,
+    )
+    transact(
+        bonusBfrTracker.address,
+        bonusBfrTracker.abi,
+        "setHandler",
+        rewardRouter.address,
+        True,
+        sender=governor,
+    )
+    transact(
+        feeBfrTracker.address,
+        feeBfrTracker.abi,
+        "setHandler",
+        rewardRouter.address,
+        True,
+        sender=governor,
+    )
+    transact(
+        feeBlpTracker.address,
+        feeBlpTracker.abi,
+        "setHandler",
+        rewardRouter.address,
+        True,
+        sender=governor,
+    )
+    transact(
+        stakedBlpTracker.address,
+        stakedBlpTracker.abi,
+        "setHandler",
+        rewardRouter.address,
+        True,
+        sender=governor,
+    )
+    transact(
+        esBfr.address,
+        esBfr.abi,
+        "setHandler",
+        rewardRouter.address,
+        True,
+        sender=governor,
+    )
 
-    bnBfr.setMinter(rewardRouter.address, True, {"from": governor})
-    esBfr.setMinter(blpVester.address, True, {"from": governor})
+    transact(
+        bnBfr.address,
+        bnBfr.abi,
+        "setMinter",
+        rewardRouter.address,
+        True,
+        sender=governor,
+    )
+    transact(
+        esBfr.address,
+        esBfr.abi,
+        "setMinter",
+        blpVester.address,
+        True,
+        sender=governor,
+    )
 
-    bfrVester.setHandler(rewardRouter.address, True, {"from": governor})
-    blpVester.setHandler(rewardRouter.address, True, {"from": governor})
+    transact(
+        bfrVester.address,
+        bfrVester.abi,
+        "setHandler",
+        rewardRouter.address,
+        True,
+        sender=governor,
+    )
+    transact(
+        blpVester.address,
+        blpVester.abi,
+        "setHandler",
+        rewardRouter.address,
+        True,
+        sender=governor,
+    )
 
-    stakedBlpTracker.setHandler(blpVester.address, True, {"from": governor})
-    blp.setHandler(rewardRouter.address, True, {"from": governor})
+    transact(
+        stakedBlpTracker.address,
+        stakedBlpTracker.abi,
+        "setHandler",
+        blpVester.address,
+        True,
+        sender=governor,
+    )
+    transact(
+        blp.address,
+        blp.abi,
+        "setHandler",
+        rewardRouter.address,
+        True,
+        sender=governor,
+    )
