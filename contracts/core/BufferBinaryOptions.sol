@@ -25,7 +25,7 @@ contract BufferBinaryOptions is
     uint16 public baseSettlementFeePercentageForAbove; // Factor of 1e2
     uint16 public baseSettlementFeePercentageForBelow; // Factor of 1e2
     uint16 public stepSize = 250; // Factor of 1e2
-    string public assetPair;
+    string public override assetPair;
 
     ILiquidityPool public override pool;
     IOptionsConfig public override config;

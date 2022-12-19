@@ -2,6 +2,7 @@ import time
 from enum import IntEnum
 
 import brownie
+from brownie import BufferBinaryOptions
 from eth_account import Account
 from eth_account.messages import encode_defunct
 
@@ -112,14 +113,15 @@ class Router(object):
             self.tokenX_options.address
         ), "Contract not registered"
 
-    def get_signature(self, timestamp, token, price, publisher=None):
+    def get_signature(self, token, timestamp, price, publisher=None):
         # timestamp = 1667208839
         # token = "0x32A49a15F8eE598C1EeDc21138DEb23b391f425b"
         # price = int(83e8)
         web3 = brownie.network.web3
         key = self.publisher.private_key if not publisher else publisher.private_key
         msg_hash = web3.solidityKeccak(
-            ["uint256", "address", "uint256"], [timestamp, token, int(price)]
+            ["string", "uint256", "uint256"],
+            [BufferBinaryOptions.at(token).assetPair(), timestamp, int(price)],
         )
         signed_message = Account.sign_message(encode_defunct(msg_hash), key)
 
@@ -195,13 +197,11 @@ class Router(object):
         queued_trade = self.router.queuedTrades(8)
         open_params_1 = [
             queued_trade[10],
-            self.tokenX_options.address,
             self.expected_strike,
         ]
         queued_trade = self.router.queuedTrades(9)
         open_params_2 = [
             queued_trade[10],
-            self.bfr_options.address,
             self.expected_strike,
         ]
 
@@ -211,6 +211,7 @@ class Router(object):
                     8,
                     *open_params_1,
                     self.get_signature(
+                        self.tokenX_options.address,
                         *open_params_1,
                     ),
                 ),
@@ -218,6 +219,7 @@ class Router(object):
                     9,
                     *open_params_2,
                     self.get_signature(
+                        self.bfr_options.address,
                         *open_params_2,
                     ),
                 ),
@@ -382,7 +384,6 @@ class Router(object):
     def verify_trade_execution(self):
         open_params = [
             self.chain.time(),
-            self.tokenX_options.address,
             self.expected_strike * 2,
         ]
 
@@ -392,6 +393,7 @@ class Router(object):
                     0,
                     *open_params,
                     self.get_signature(
+                        self.tokenX_options.address,
                         *open_params,
                     ),
                 )
@@ -417,7 +419,6 @@ class Router(object):
         queued_trade = self.router.queuedTrades(1)
         open_params = [
             queued_trade[10],
-            self.tokenX_options.address,
             404e8 + 1,
         ]
         txn = self.router.resolveQueuedTrades(
@@ -426,6 +427,7 @@ class Router(object):
                     1,
                     *open_params,
                     self.get_signature(
+                        self.tokenX_options.address,
                         *open_params,
                     ),
                 )
@@ -446,7 +448,6 @@ class Router(object):
         queued_trade = self.router.queuedTrades(1)
         open_params = [
             queued_trade[10],
-            self.tokenX_options.address,
             396e8 - 1,
         ]
         txn = self.router.resolveQueuedTrades(
@@ -455,6 +456,7 @@ class Router(object):
                     1,
                     *open_params,
                     self.get_signature(
+                        self.tokenX_options.address,
                         *open_params,
                     ),
                 )
@@ -475,7 +477,6 @@ class Router(object):
         queued_trade = self.router.queuedTrades(1)
         open_params = [
             queued_trade[10],
-            self.tokenX_options.address,
             396e8,
         ]
         txn = self.router.resolveQueuedTrades(
@@ -484,6 +485,7 @@ class Router(object):
                     1,
                     *open_params,
                     self.get_signature(
+                        self.tokenX_options.address,
                         *open_params,
                     ),
                 )
@@ -499,7 +501,6 @@ class Router(object):
         queued_trade = self.router.queuedTrades(1)
         open_params = [
             queued_trade[10],
-            self.tokenX_options.address,
             404e8,
         ]
         txn = self.router.resolveQueuedTrades(
@@ -508,6 +509,7 @@ class Router(object):
                     1,
                     *open_params,
                     self.get_signature(
+                        self.tokenX_options.address,
                         *open_params,
                     ),
                 )
@@ -549,7 +551,6 @@ class Router(object):
         queued_trade = self.router.queuedTrades(2)
         open_params = [
             queued_trade[10],
-            self.tokenX_options.address,
             404e8,
         ]
         initial_user_tokenX_balance = self.tokenX.balanceOf(self.user_2)
@@ -559,6 +560,7 @@ class Router(object):
                     2,
                     *open_params,
                     self.get_signature(
+                        self.tokenX_options.address,
                         *open_params,
                     ),
                 )
@@ -586,6 +588,7 @@ class Router(object):
                     2,
                     *open_params,
                     self.get_signature(
+                        self.tokenX_options.address,
                         *open_params,
                     ),
                 )
@@ -613,12 +616,10 @@ class Router(object):
         )
         open_params = [
             self.router.queuedTrades(3)[10],
-            self.tokenX_options.address,
             404e8,
         ]
         open_params_1 = [
             self.router.queuedTrades(4)[10],
-            self.tokenX_options.address,
             404e8 + 1,
         ]
         txn = self.router.resolveQueuedTrades(
@@ -627,6 +628,7 @@ class Router(object):
                     3,
                     *open_params,
                     self.get_signature(
+                        self.tokenX_options.address,
                         *open_params,
                     ),
                 ),
@@ -634,6 +636,7 @@ class Router(object):
                     4,
                     *open_params_1,
                     self.get_signature(
+                        self.tokenX_options.address,
                         *open_params_1,
                     ),
                 ),
@@ -668,13 +671,14 @@ class Router(object):
             {"from": self.owner},
         )
         queued_trade = self.router.queuedTrades(5)
-        open_params_1 = [queued_trade[10], self.tokenX_options.address, 404e8]
+        open_params_1 = [queued_trade[10], 404e8]
         txn = self.router.resolveQueuedTrades(
             [
                 (
                     5,
                     *open_params_1,
                     self.get_signature(
+                        self.tokenX_options.address,
                         *open_params_1,
                     ),
                 )
@@ -703,13 +707,14 @@ class Router(object):
             {"from": self.owner},
         )
         queued_trade = self.router.queuedTrades(6)
-        open_params_2 = [queued_trade[10], self.tokenX_options.address, 404e8]
+        open_params_2 = [queued_trade[10], 404e8]
         txn = self.router.resolveQueuedTrades(
             [
                 (
                     6,
                     *open_params_2,
                     self.get_signature(
+                        self.tokenX_options.address,
                         *open_params_2,
                     ),
                 )
@@ -765,17 +770,18 @@ class Router(object):
 
         self.chain.snapshot()
         queued_trade = self.router.queuedTrades(5)
-        open_params_1 = [queued_trade[10], self.tokenX_options.address, 404e8]
+        open_params_1 = [queued_trade[10], 404e8]
         queued_trade = self.router.queuedTrades(6)
-        open_params_2 = [queued_trade[10], self.tokenX_options.address, 404e8]
+        open_params_2 = [queued_trade[10], 404e8]
         queued_trade = self.router.queuedTrades(7)
-        open_params_3 = [queued_trade[10], self.tokenX_options.address, 404e8]
+        open_params_3 = [queued_trade[10], 404e8]
         txn = self.router.resolveQueuedTrades(
             [
                 (
                     5,
                     *open_params_1,
                     self.get_signature(
+                        self.tokenX_options.address,
                         *open_params_1,
                     ),
                 ),
@@ -783,6 +789,7 @@ class Router(object):
                     6,
                     *open_params_2,
                     self.get_signature(
+                        self.tokenX_options.address,
                         *open_params_2,
                     ),
                 ),
@@ -790,6 +797,7 @@ class Router(object):
                     7,
                     *open_params_3,
                     self.get_signature(
+                        self.tokenX_options.address,
                         *open_params_3,
                     ),
                 ),
@@ -816,26 +824,27 @@ class Router(object):
 
         queued_trade = self.router.queuedTrades(1)
         open_params = [
-            queued_trade[10],
             self.tokenX_options.address,
+            queued_trade[10],
             self.expected_strike,
         ]
         open_params_1 = [
-            queued_trade[10] + 1,
             self.tokenX_options.address,
+            queued_trade[10] + 1,
             self.expected_strike,
         ]
         open_params_2 = [
-            queued_trade[10],
-            self.tokenX_options.address,
-            self.expected_strike * 2,
+            self.bfr_options,
+            queued_trade[10] + 1,
+            self.expected_strike,
         ]
+
         with brownie.reverts():  # Keeper not verified
             self.router.resolveQueuedTrades(
                 [
                     (
                         1,
-                        *open_params,
+                        *open_params[1:],
                         self.get_signature(
                             *open_params,
                         ),
@@ -857,7 +866,7 @@ class Router(object):
             [
                 (
                     1,
-                    *open_params,
+                    *open_params[1:],
                     self.get_signature(
                         *open_params,
                     ),
@@ -871,16 +880,16 @@ class Router(object):
         self.router.setKeeper(self.bot, True)
 
         self.chain.snapshot()
+
         # Signature match failed due to wrong token
         txn = self.router.resolveQueuedTrades(
             [
                 (
                     1,
                     queued_trade[10],
-                    self.bfr_options.address,
                     self.expected_strike,
                     self.get_signature(
-                        *open_params,
+                        *open_params_2,
                     ),
                 )
             ],
@@ -895,7 +904,6 @@ class Router(object):
                 (
                     1,
                     queued_trade[10],
-                    self.tokenX_options.address,
                     self.expected_strike + 1,
                     self.get_signature(
                         *open_params,
@@ -913,7 +921,6 @@ class Router(object):
                 (
                     1,
                     self.chain.time(),
-                    self.tokenX_options.address,
                     self.expected_strike,
                     self.get_signature(
                         *open_params,
@@ -931,7 +938,7 @@ class Router(object):
             [
                 (
                     1,
-                    *open_params,
+                    *open_params[1:],
                     self.get_signature(*open_params, spam_publisher),
                 )
             ],
@@ -945,7 +952,7 @@ class Router(object):
             [
                 (
                     1,
-                    *open_params_1,
+                    *open_params_1[1:],
                     self.get_signature(
                         *open_params_1,
                     ),
@@ -961,8 +968,8 @@ class Router(object):
         option_1 = self.tokenX_options.options(0)
         option_2 = self.tokenX_options.options(1)
 
-        close_params_1 = (option_1[5], self.tokenX_options.address, option_1[1] * 2)
-        close_params_2 = (option_2[5], self.tokenX_options.address, option_2[1] // 2)
+        close_params_1 = (self.tokenX_options.address, option_1[5], option_1[1] * 2)
+        close_params_2 = (self.tokenX_options.address, option_2[5], option_2[1] // 2)
         with brownie.reverts():  # Keeper not verified
             self.router.unlockOptions(
                 [
