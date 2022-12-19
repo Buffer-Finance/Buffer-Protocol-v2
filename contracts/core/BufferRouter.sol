@@ -5,6 +5,7 @@ pragma solidity 0.8.4;
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
 import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
+import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "../interfaces/Interfaces.sol";
 
 /**
@@ -12,6 +13,7 @@ import "../interfaces/Interfaces.sol";
  * @notice Buffer Options Router Contract
  */
 contract BufferRouter is AccessControl, IBufferRouter {
+    using SafeERC20 for ERC20;
     uint16 MAX_WAIT_TIME = 1 minutes;
     uint256 public nextQueueId = 0;
     address public publisher;
@@ -81,7 +83,7 @@ contract BufferRouter is AccessControl, IBufferRouter {
 
         // Transfer the fee specified from the user to this contract.
         // User has to approve first inorder to execute this function
-        IERC20(optionsContract.tokenX()).transferFrom(
+        ERC20(optionsContract.tokenX()).safeTransferFrom(
             msg.sender,
             address(this),
             totalFee
@@ -324,12 +326,12 @@ contract BufferRouter is AccessControl, IBufferRouter {
         queuedTrade.isQueued = false;
 
         // Transfer the fee to the target options contract
-        IERC20 tokenX = IERC20(optionsContract.tokenX());
-        tokenX.transfer(queuedTrade.targetContract, revisedFee);
+        ERC20 tokenX = ERC20(optionsContract.tokenX());
+        tokenX.safeTransfer(queuedTrade.targetContract, revisedFee);
 
         // Refund the user in case the trade amount was lesser
         if (revisedFee < queuedTrade.totalFee) {
-            tokenX.transfer(
+            tokenX.safeTransfer(
                 queuedTrade.user,
                 queuedTrade.totalFee - revisedFee
             );
@@ -353,7 +355,7 @@ contract BufferRouter is AccessControl, IBufferRouter {
             queuedTrade.targetContract
         );
         queuedTrade.isQueued = false;
-        IERC20(optionsContract.tokenX()).transfer(
+        ERC20(optionsContract.tokenX()).safeTransfer(
             queuedTrade.user,
             queuedTrade.totalFee
         );

@@ -5,6 +5,7 @@ pragma solidity 0.8.4;
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
+import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "../interfaces/Interfaces.sol";
 
 /**
@@ -19,6 +20,7 @@ contract BufferBinaryOptions is
     ERC721,
     AccessControl
 {
+    using SafeERC20 for ERC20;
     uint256 public nextTokenId = 0;
     uint256 public totalLockedAmount;
     bool public isPaused;
@@ -138,7 +140,11 @@ contract BufferBinaryOptions is
             option.premium -
             referrerFee;
 
-        tokenX.transfer(config.settlementFeeDisbursalContract(), settlementFee);
+        tokenX.safeTransfer(
+            config.settlementFeeDisbursalContract(),
+            settlementFee
+        );
+
         pool.lock(optionID, option.lockedAmount, option.premium);
         emit Create(
             optionParams.user,
@@ -468,14 +474,17 @@ contract BufferBinaryOptions is
         bool isReferralValid
     ) internal returns (uint256 referrerFee) {
         address referrer = referral.codeOwner(referralCode);
-
-        if (referrer != user && referrer != address(0)) {
+        if (
+            referrer != user &&
+            referrer != address(0) &&
+            referrer.code.length == 0
+        ) {
             referrerFee = ((totalFee *
                 referral.referrerTierDiscount(
                     referral.referrerTier(referrer)
                 )) / (1e4 * 1e3));
             if (referrerFee > 0) {
-                tokenX.transfer(referrer, referrerFee);
+                tokenX.safeTransfer(referrer, referrerFee);
 
                 (uint256 formerUnitFee, , ) = _fees(
                     10**decimals(),
@@ -509,7 +518,11 @@ contract BufferBinaryOptions is
                     nftContract.tokenTierMappings(traderNFTId)
                 ];
         }
-        if (referrer != user && referrer != address(0)) {
+        if (
+            referrer != user &&
+            referrer != address(0) &&
+            referrer.code.length == 0
+        ) {
             uint8 step = referral.referrerTierStep(
                 referral.referrerTier(referrer)
             );
