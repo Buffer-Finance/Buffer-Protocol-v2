@@ -147,7 +147,7 @@ contract BufferBinaryPool is
      ***********************************************/
 
     /**
-     * @notice Called by BufferCallOptions to lock the funds
+     * @notice Called by BufferBinaryOptions to lock the funds
      * @param id optionId
      * @param tokenXAmount Amount of funds that should be locked in an option
      * @param premium Premium paid to liquidity pool to lock the above funds
@@ -183,7 +183,7 @@ contract BufferBinaryPool is
     }
 
     /**
-     * @notice Called by BufferCallOptions to send funds to liquidity providers after an option's expiration
+     * @notice Called by BufferBinaryOptions to send funds to liquidity providers after an option's expiration
      * @param id Id of LockedLiquidity
      * @param to Provider
      * @param tokenXAmount Funds that should be sent
@@ -265,7 +265,8 @@ contract BufferBinaryPool is
         unlockedAmount = liquidityPerUser[account].unlockedAmount;
         uint256 index = liquidityPerUser[account].nextIndexForUnlock;
         nextIndexForUnlock = index;
-        for (uint256 n = index; n < len; n++) {
+        uint256 maxIndex = index + 1000 < len ? index + 1000 : len;
+        for (uint256 n = index; n < maxIndex; n++) {
             if (
                 liquidityPerUser[account].lockedAmounts[n].timestamp +
                     lockupPeriod <=

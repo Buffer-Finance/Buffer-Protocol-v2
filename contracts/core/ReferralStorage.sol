@@ -48,6 +48,7 @@ contract ReferralStorage is IReferralStorage, Ownable {
         override
         onlyOwner
     {
+        require(tier < 3);
         referrerTier[_referrer] = tier;
         emit UpdateReferrerTier(_referrer, tier);
     }
