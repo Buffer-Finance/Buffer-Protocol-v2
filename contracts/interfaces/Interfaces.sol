@@ -92,6 +92,7 @@ interface IBufferBinaryOptions {
     );
     event Pause(bool isPaused);
     event UpdateReferral(
+        address user,
         address referrer,
         bool isReferralValid,
         uint256 totalFee,
