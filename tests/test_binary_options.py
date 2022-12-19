@@ -125,33 +125,45 @@ class BinaryOptionTesting(object):
         self.chain.snapshot()
 
         # assetUtilizationLimit
-        with brownie.reverts("Utilization value too high"):
+        with brownie.reverts("Wrong utilization value"):
             self.options_config.setAssetUtilizationLimit(112e2)
         with brownie.reverts():  # Wrong role
             self.options_config.setAssetUtilizationLimit(10e2, {"from": self.user_1})
+        with brownie.reverts("Wrong utilization value"):
+            self.options_config.setAssetUtilizationLimit(0)
+
         self.options_config.setAssetUtilizationLimit(52e2)
         assert self.options_config.assetUtilizationLimit() == 52e2
 
         # overallPoolUtilizationLimit
-        with brownie.reverts("Utilization value too high"):
+        with brownie.reverts("Wrong utilization value"):
             self.options_config.setOverallPoolUtilizationLimit(112e2)
         with brownie.reverts():  # Wrong role
             self.options_config.setOverallPoolUtilizationLimit(
                 10e2, {"from": self.user_1}
             )
+        with brownie.reverts("Wrong utilization value"):
+            self.options_config.setOverallPoolUtilizationLimit(0)
+
         self.options_config.setOverallPoolUtilizationLimit(52e2)
         assert self.options_config.overallPoolUtilizationLimit() == 52e2
 
         # maxPeriod
-        with brownie.reverts("MaxPeriod needs to be greater than 1 minutes"):
+        with brownie.reverts(
+            "MaxPeriod needs to be greater than or equal the min period"
+        ):
             self.options_config.setMaxPeriod(50)
         with brownie.reverts():  # Wrong role
             self.options_config.setMaxPeriod(86400, {"from": self.user_1})
+        with brownie.reverts(
+            "MaxPeriod needs to be greater than or equal the min period"
+        ):
+            self.options_config.setMaxPeriod(120)
         self.options_config.setMaxPeriod(86400)
         assert self.options_config.maxPeriod() == 86400
 
         # minPeriod
-        with brownie.reverts("MinPeriod needs to be greater than 1 minutes"):
+        with brownie.reverts("MinPeriod needs to be greater than 1 minute"):
             self.options_config.setMinPeriod(50)
         with brownie.reverts():  # Wrong role
             self.options_config.setMinPeriod(300, {"from": self.user_1})

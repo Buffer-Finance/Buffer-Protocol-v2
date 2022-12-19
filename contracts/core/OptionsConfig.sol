@@ -53,21 +53,21 @@ contract OptionsConfig is Ownable, IOptionsConfig {
     }
 
     function setOverallPoolUtilizationLimit(uint16 value) external onlyOwner {
-        require(value <= 100e2, "Utilization value too high");
+        require(value <= 100e2 && value > 0, "Wrong utilization value");
         overallPoolUtilizationLimit = value;
         emit UpdateOverallPoolUtilizationLimit(value);
     }
 
     function setAssetUtilizationLimit(uint16 value) external onlyOwner {
-        require(value <= 100e2, "Utilization value too high");
+        require(value <= 100e2 && value > 0, "Wrong utilization value");
         assetUtilizationLimit = value;
         emit UpdateAssetUtilizationLimit(value);
     }
 
     function setMaxPeriod(uint32 value) external onlyOwner {
         require(
-            value >= 1 minutes,
-            "MaxPeriod needs to be greater than 1 minutes"
+            value >= minPeriod,
+            "MaxPeriod needs to be greater than or equal the min period"
         );
         maxPeriod = value;
         emit UpdateMaxPeriod(value);
@@ -76,7 +76,7 @@ contract OptionsConfig is Ownable, IOptionsConfig {
     function setMinPeriod(uint32 value) external onlyOwner {
         require(
             value >= 1 minutes,
-            "MinPeriod needs to be greater than 1 minutes"
+            "MinPeriod needs to be greater than 1 minute"
         );
         minPeriod = value;
         emit UpdateMinPeriod(value);
