@@ -367,8 +367,10 @@ contract BufferBinaryPool is
     function toTokenX(uint256 amount) public view returns (uint256) {
         uint256 totalSupply = totalSupply();
         uint256 balance = totalTokenXBalance();
-
-        return (amount * balance) / totalSupply;
+        if (totalSupply > 0) {
+            return (amount * balance) / totalSupply;
+        }
+        return 0;
     }
 
     /**

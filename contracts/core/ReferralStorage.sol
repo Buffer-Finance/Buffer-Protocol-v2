@@ -91,18 +91,6 @@ contract ReferralStorage is IReferralStorage, Ownable {
     }
 
     /**
-     * @notice Resets the owner of an existing referral code
-     */
-    function setCodeOwner(string memory _code, address _newUser) external {
-        require(bytes(_code).length != 0, "ReferralStorage: invalid _code");
-
-        require(msg.sender == codeOwner[_code], "ReferralStorage: forbidden");
-
-        codeOwner[_code] = _newUser;
-        emit SetCodeOwner(msg.sender, _newUser, _code);
-    }
-
-    /**
      * @notice Returns the referrer associated with a trader
      */
     function getTraderReferralInfo(address user)
