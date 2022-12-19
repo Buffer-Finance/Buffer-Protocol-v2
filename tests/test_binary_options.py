@@ -1004,6 +1004,7 @@ class BinaryOptionTesting(object):
             final_user_tokenX_balance - initial_user_tokenX_balance == 0
         ), "Wrong user balance"
         assert final_locked_amount - initial_locked_amount == expected_amount
+        assert txn.events["UpdateReferral"]["rebate"] == 83332
         self.verify_option_states(
             0,
             self.user_1,
