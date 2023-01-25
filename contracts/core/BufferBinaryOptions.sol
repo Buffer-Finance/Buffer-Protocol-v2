@@ -26,7 +26,7 @@ contract BufferBinaryOptions is
     bool public isPaused;
     uint16 public baseSettlementFeePercentageForAbove; // Factor of 1e2
     uint16 public baseSettlementFeePercentageForBelow; // Factor of 1e2
-    uint16 public stepSize = 250; // Factor of 1e2
+    uint16 public stepSize = 25; // Factor of 1e2
     string public override assetPair;
 
     ILiquidityPool public override pool;
