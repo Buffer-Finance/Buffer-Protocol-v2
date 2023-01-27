@@ -86,7 +86,7 @@ def contracts(
 
     # binary_options_config_atm.settraderNFTContract(trader_nft.address)
     binary_european_options_atm.configure(
-        15e2, 15e2, [0, 1, 2, 3], {"from": accounts[0]}
+        15e2, 15e2, [5, 10, 16, 24], {"from": accounts[0]}
     )
 
     print("############### Binary ATM Options 2 #################")
@@ -126,7 +126,7 @@ def contracts(
     )
     # binary_options_config_atm_2.settraderNFTContract(trader_nft.address)
     binary_european_options_atm_2.configure(
-        15e2, 15e2, [0, 1, 2, 3], {"from": accounts[0]}
+        15e2, 15e2, [5, 10, 16, 24], {"from": accounts[0]}
     )
 
     print("############### Binary ATM Options 3 #################")
@@ -166,7 +166,7 @@ def contracts(
 
     # binary_options_config_atm_3.settraderNFTContract(trader_nft.address)
     binary_european_options_atm_3.configure(
-        15e2, 15e2, [0, 1, 2, 3], {"from": accounts[0]}
+        15e2, 15e2, [5, 10, 16, 24], {"from": accounts[0]}
     )
 
     print("############### Deploying BFR pool contracts #################")
@@ -213,9 +213,9 @@ def contracts(
 
     # bfr_binary_options_config_atm.settraderNFTContract(trader_nft.address)
     bfr_binary_european_options_atm.configure(
-        15e2, 15e2, [0, 1, 2, 3], {"from": accounts[0]}
+        15e2, 15e2, [5, 10, 16, 24], {"from": accounts[0]}
     )
-    referral_contract.configure([1, 2, 3], [25e3, 50e3, 75e3], {"from": accounts[0]})
+    referral_contract.configure([4, 10, 16], [25e3, 50e3, 75e3], {"from": accounts[0]})
 
     router.setContractRegistry(bfr_binary_european_options_atm.address, True)
     router.setContractRegistry(binary_european_options_atm_2.address, True)

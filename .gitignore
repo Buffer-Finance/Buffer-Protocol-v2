@@ -4,3 +4,4 @@ tests/__pycache__/*
 .env
 scripts/__pycache__/*
 flat_files/*
+charmap.json.gz
