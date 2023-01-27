@@ -351,7 +351,8 @@ contract BufferRouter is AccessControl, IBufferRouter {
 
         uint256 optionId = optionsContract.createFromRouter(
             optionParams,
-            isReferralValid
+            isReferralValid,
+            queuedTrade.queuedTime
         );
 
         emit OpenTrade(queuedTrade.user, queueId, optionId);

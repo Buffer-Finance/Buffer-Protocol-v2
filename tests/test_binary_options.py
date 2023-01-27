@@ -1971,6 +1971,7 @@ class BinaryOptionTesting(object):
                     0,
                 ),
                 False,
+                int(time.time()),
                 {"from": self.accounts[0]},
             )
 

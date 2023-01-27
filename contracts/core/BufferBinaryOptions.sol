@@ -108,7 +108,8 @@ contract BufferBinaryOptions is
      */
     function createFromRouter(
         OptionParams calldata optionParams,
-        bool isReferralValid
+        bool isReferralValid,
+        uint256 queuedTime
     ) external override onlyRole(ROUTER_ROLE) returns (uint256 optionID) {
         Option memory option = Option(
             State.Active,
@@ -116,10 +117,10 @@ contract BufferBinaryOptions is
             optionParams.amount,
             optionParams.amount,
             optionParams.amount / 2,
-            block.timestamp + optionParams.period,
+            queuedTime + optionParams.period,
             optionParams.isAbove,
             optionParams.totalFee,
-            block.timestamp
+            queuedTime
         );
         totalLockedAmount += optionParams.amount;
         optionID = _generateTokenId();

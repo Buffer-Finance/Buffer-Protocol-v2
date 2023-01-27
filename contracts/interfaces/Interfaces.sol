@@ -103,7 +103,8 @@ interface IBufferBinaryOptions {
 
     function createFromRouter(
         OptionParams calldata optionParams,
-        bool isReferralValid
+        bool isReferralValid,
+        uint256 queuedTime
     ) external returns (uint256 optionID);
 
     function checkParams(OptionParams calldata optionParams)
