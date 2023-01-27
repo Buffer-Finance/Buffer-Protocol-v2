@@ -655,6 +655,7 @@ class BinaryOptionTesting(object):
         self.chain.revert()
 
     def verify_creation_with_referral_and_no_nft(self):
+        # tier 0
         self.chain.snapshot()
         self.tokenX.transfer(self.user_5, self.total_fee * 3, {"from": self.owner})
         self.tokenX.approve(
@@ -690,7 +691,7 @@ class BinaryOptionTesting(object):
         )
         queue_id = txn.events["InitiateTrade"]["queueId"]
 
-        expected_amount = 1750001
+        expected_amount = 1720001.0
 
         initial_referrer_tokenX_balance = self.tokenX.balanceOf(self.referrer)
         initial_user_tokenX_balance = self.tokenX.balanceOf(self.user_5)
@@ -742,7 +743,7 @@ class BinaryOptionTesting(object):
             expected_amount // 2,
             self.is_above,
             self.total_fee,
-            122500,  # 12.5%
+            137500,  # 14% - 2500
             final_pool_tokenX_balance - initial_pool_tokenX_balance,
             final_sfd_tokenX_balance - initial_sfd_tokenX_balance,
             txn,
@@ -990,7 +991,7 @@ class BinaryOptionTesting(object):
 
     def verify_creation_with_referral_and_nft(self):
         self.chain.snapshot()
-        # Case 1 : referrer tier > nft tier
+        # Case 1 : referrer tier > nft tier - tier 1
         self.options_config.settraderNFTContract(self.trader_nft_contract.address)
 
         self.referral_contract.setReferrerTier(self.referrer, 1, {"from": self.owner})
@@ -1032,7 +1033,7 @@ class BinaryOptionTesting(object):
             *params,
             {"from": self.user_1},
         )
-        expected_amount = 1800001
+        expected_amount = 1750001
         initial_user_tokenX_balance = self.tokenX.balanceOf(self.user_1)
         initial_pool_tokenX_balance = self.tokenX.balanceOf(self.generic_pool.address)
         initial_locked_amount = self.tokenX_options.totalLockedAmount()
@@ -1080,7 +1081,7 @@ class BinaryOptionTesting(object):
             expected_amount // 2,
             self.is_above,
             self.total_fee,
-            95000.0,  # 5%
+            120000.0,  # 5%
             final_pool_tokenX_balance - initial_pool_tokenX_balance,
             final_sfd_tokenX_balance - initial_sfd_tokenX_balance,
             txn,
@@ -1088,7 +1089,7 @@ class BinaryOptionTesting(object):
 
         self.chain.revert()
 
-        # Case 2 : referrer tier < nft tier
+        # Case 2 : referrer tier < nft tier - tier 2
         self.chain.snapshot()
         self.options_config.settraderNFTContract(self.trader_nft_contract.address)
 
@@ -1132,7 +1133,8 @@ class BinaryOptionTesting(object):
             *params,
             {"from": self.user_1},
         )
-        expected_amount = 1800001
+
+        expected_amount = 1780002.0
         initial_user_tokenX_balance = self.tokenX.balanceOf(self.user_1)
         initial_pool_tokenX_balance = self.tokenX.balanceOf(self.generic_pool.address)
         initial_locked_amount = self.tokenX_options.totalLockedAmount()
@@ -1180,7 +1182,7 @@ class BinaryOptionTesting(object):
             expected_amount // 2,
             self.is_above,
             self.total_fee,
-            97500,
+            107499.0,
             final_pool_tokenX_balance - initial_pool_tokenX_balance,
             final_sfd_tokenX_balance - initial_sfd_tokenX_balance,
             txn,
