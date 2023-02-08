@@ -4,3 +4,4 @@ scripts/__pycache__/*
 .VSCodeCounter/*
 .env
 flat_files/*
+.hypothesis/*
